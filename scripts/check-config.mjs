@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
- * Pass'Teny — Vérification de la configuration (Phase 0 → Phase 1).
+ * Pass'Teny — Vérification approfondie de la configuration (Phase 0 → Phase 1).
  *
- * Teste la présence des variables, la connexion Supabase (tables + RLS en
- * mode anon) et l'accès du token GitHub au repo content — SANS révéler
- * les valeurs des secrets (préfixe + longueur uniquement).
+ * Teste :
+ *  1. Présence des variables (préfixe + longueur uniquement, jamais les valeurs)
+ *  2. Supabase : toutes les tables du schéma, lecture anon (RLS), auth (providers)
+ *  3. GitHub : token + accès repo content + lecture raw (utilisée en production)
  *
  * Usage : node scripts/check-config.mjs   (depuis le dossier PassTeny)
  */
@@ -32,7 +33,7 @@ const check = (label, ok, detail = '') => {
   results.push(`${ok ? '✅' : detail.startsWith('⚠') ? '⚠️' : '❌'} ${label}${detail ? ' — ' + detail : ''}`)
 }
 
-// ── 1. Présence des variables ────────────────────────────────────────────────
+// ── 1. Variables ─────────────────────────────────────────────────────────────
 const anon = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 const srv = env.SUPABASE_SERVICE_ROLE_KEY || ''
 const base = (env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '')
@@ -57,12 +58,12 @@ check('SUPABASE_SERVICE_ROLE_KEY', srv.length >= 20, srv ? `présente (${mask(sr
 check('GITHUB_TOKEN', token.length >= 10, token ? `présente (${mask(token)})` : 'absente')
 check('CONTENT_REPO', /^[^/]+\/[^/]+$/.test(repo), repo ? repo : 'absente')
 
-// ── 2. Supabase : connexion, tables, RLS anon ────────────────────────────────
+// ── 2. Supabase : tables, RLS, auth ──────────────────────────────────────────
 const head = (key) => ({ apikey: key, Authorization: `Bearer ${key}` })
 
-async function restQuery(key, table, qs = '') {
+async function restQuery(key, pathname, qs = '') {
   try {
-    const res = await fetch(`${base}/rest/v1/${table}?${qs || 'select=*&limit=1'}`, {
+    const res = await fetch(`${base}${pathname}?${qs || 'select=*&limit=1'}`, {
       headers: { ...head(key), Accept: 'application/json' },
       signal: AbortSignal.timeout(15000),
     })
@@ -72,52 +73,68 @@ async function restQuery(key, table, qs = '') {
   }
 }
 
-if (base.startsWith('https://') && anon && srv) {
-  // Tables accessibles en lecture anon (RLS read policies) :
-  // settings (peuplée par le seed SQL) et songs (vide, doit exister).
-  const [anonSettings, anonSongs, srvSettings, srvProfiles] = await Promise.all([
-    restQuery(anon, 'settings', 'select=key&limit=3'),
-    restQuery(anon, 'songs', 'select=id&limit=1'),
-    restQuery(srv, 'settings', 'select=key&limit=3'),
-    restQuery(srv, 'profiles', 'select=id&limit=1'),
-  ])
+const TABLES = ['profiles', 'songs', 'annotations', 'annotation_versions', 'votes', 'glossary_terms', 'settings']
 
-  const settingsOk = anonSettings.status === 200
+if (base.startsWith('https://') && anon && srv) {
+  // a) Chaque table du schéma existe-t-elle ? (service_role = bypass RLS)
+  const exists = await Promise.all(TABLES.map((t) => restQuery(srv, `/rest/v1/${t}`, `select=*&limit=1`)))
+  const missing = TABLES.filter((_, i) => exists[i].status !== 200)
   check(
-    'Supabase : table settings lisible en anon (RLS)',
-    settingsOk,
-    settingsOk
-      ? `retourne des données (${anonSettings.body.includes('reputation') ? 'seeds présents' : 'table présente'})`
-      : `status ${anonSettings.status}${anonSettings.body.slice(0, 120)}`,
+    'Supabase : les 7 tables du schéma existent',
+    missing.length === 0,
+    missing.length === 0
+      ? TABLES.join(', ')
+      : `manquantes/err: ${missing.map((m, i) => `${TABLES[i]}=${exists[TABLES.indexOf(m)].status}`).join(', ')}`,
   )
-  const songsOk = anonSongs.status === 200
+
+  // b) Lecture anon : les policies RLS read doivent laisser passer (tables vides → [])
+  const anonReads = await Promise.all(TABLES.map((t) => restQuery(anon, `/rest/v1/${t}`, `select=*&limit=1`)))
+  const anonBlocked = TABLES.filter((_, i) => anonReads[i].status !== 200)
   check(
-    'Supabase : table songs présente (RLS lecture publique)',
-    songsOk,
-    songsOk ? 'table présente (vide, normal avant l’indexation)' : `status ${anonSongs.status} ${anonSongs.body.slice(0, 120)}`,
+    'Supabase : lecture anon OK (policies RLS actives)',
+    anonBlocked.length === 0,
+    anonBlocked.length === 0
+      ? 'lecture publique fonctionnelle'
+      : `bloquées: ${anonBlocked.map((t) => `${t}=${anonReads[TABLES.indexOf(t)].status}`).join(', ')}`,
   )
-  const srvOk = srvSettings.status === 200 && srvProfiles.status === 200
+
+  // c) Les seeds de `settings` sont-ils présents ? (preuve que schema.sql a tourné)
+  const settingsRead = await restQuery(anon, '/rest/v1/settings', 'select=key&order=key')
+  let settingsOk = false
+  let settingsDetail = ''
+  if (settingsRead.status === 200) {
+    try {
+      const keys = JSON.parse(settingsRead.body).map((r) => r.key)
+      settingsOk = ['reputation', 'roles', 'auto_pr', 'auto_merge', 'moderation'].every((k) => keys.includes(k))
+      settingsDetail = settingsOk ? `seeds présents (${keys.join(', ')})` : `seeds partiels: ${keys.join(', ')}`
+    } catch {
+      settingsDetail = 'réponse illisible'
+    }
+  } else {
+    settingsDetail = `status ${settingsRead.status}`
+  }
+  check('Supabase : seeds des réglages présents (schema.sql exécuté)', settingsOk, settingsDetail)
+
+  // d) Service d'auth : providers email (magic link)
+  const authRes = await restQuery(anon, '/auth/v1/settings')
+  const authOk = authRes.status === 200 && authRes.body.includes('email')
   check(
-    'Supabase : clé service_role fonctionnelle',
-    srvOk,
-    srvOk ? `lecture OK (settings ${srvSettings.status}, profiles ${srvProfiles.status})` : `settings ${srvSettings.status} / profiles ${srvProfiles.status}`,
+    'Supabase : service Auth up (provider email)',
+    authOk,
+    authOk ? 'magic link / email disponibles' : `status ${authRes.status}`,
   )
 } else {
-  check('Supabase : tests de connexion', false, 'variables Supabase incomplètes — tests ignorés')
+  check('Supabase : tests', false, 'variables Supabase incomplètes — tests ignorés')
 }
 
-// ── 3. GitHub : token + accès au repo content ────────────────────────────────
+// ── 3. GitHub : token, repo content, lecture raw (prod) ──────────────────────
 if (token && /^[^/]+\/[^/]+$/.test(repo)) {
   try {
     const userRes = await fetch('https://api.github.com/user', {
       headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'pass-teny' },
       signal: AbortSignal.timeout(15000),
     })
-    check(
-      'GitHub : token valide',
-      userRes.status === 200,
-      userRes.status === 200 ? `authentifié` : `status ${userRes.status} (token invalide ou révoqué)`,
-    )
+    check('GitHub : token valide', userRes.status === 200, userRes.status === 200 ? 'authentifié' : `status ${userRes.status}`)
 
     const contentRes = await fetch(`https://api.github.com/repos/${repo}/contents/`, {
       headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'pass-teny' },
@@ -126,9 +143,26 @@ if (token && /^[^/]+\/[^/]+$/.test(repo)) {
     const hasFiles = contentRes.status === 200 && (await contentRes.json()).length > 0
     check(
       `GitHub : accès au repo ${repo}`,
-      contentRes.status === 200,
-      hasFiles ? 'repo accessible, contenu présent' : `status ${contentRes.status}${contentRes.status === 404 ? ' (repo introuvable ou non accessible)' : ''}`,
+      contentRes.status === 200 && hasFiles,
+      hasFiles ? 'contenu présent' : `status ${contentRes.status}${contentRes.status === 404 ? ' (introuvable)' : ''}`,
     )
+
+    // Le mode production lit via raw.githubusercontent.com — test réel du pipeline.
+    const rawRes = await fetch(`https://raw.githubusercontent.com/${repo}/main/index.json`, {
+      signal: AbortSignal.timeout(15000),
+    })
+    let rawOk = false
+    let rawDetail = `status ${rawRes.status}`
+    if (rawRes.status === 200) {
+      try {
+        const idx = await rawRes.json()
+        rawOk = Array.isArray(idx.songs) && idx.songs.length > 0
+        rawDetail = `index.json lisible (${idx.songs.length} titres)`
+      } catch {
+        rawDetail = 'index.json illisible'
+      }
+    }
+    check('GitHub : lecture raw OK (mode production)', rawOk, rawDetail)
   } catch (err) {
     check('GitHub : tests', false, `network: ${err.message}`)
   }
@@ -137,7 +171,7 @@ if (token && /^[^/]+\/[^/]+$/.test(repo)) {
 }
 
 // ── Rapport ──────────────────────────────────────────────────────────────────
-console.log('\n── Vérification de la configuration Pass’Teny ──\n')
+console.log('\n── Vérification approfondie Pass’Teny ──\n')
 for (const line of results) console.log(line)
 const fails = results.filter((r) => r.startsWith('❌')).length
 const warns = results.filter((r) => r.startsWith('⚠')).length

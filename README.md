@@ -110,7 +110,14 @@ node scripts/seed-from-passio.mjs --dry-run  # aperçu sans écrire
   - [ ] Création du projet Supabase + application du `schema.sql` *(compte à créer)*
   - [ ] Création/push du repo `pass-teny-content` *(compte GitHub)*
   - [ ] Déploiement Vercel + domaine `teny.passiio.shop` *(compte Vercel)*
-- **Phase 1 — Contribution** (auth, soumission, votes, PR auto, réputation)
+- **Phase 1 — Contribution ✅ (en cours de finalisation)**
+  - [x] Auth Supabase : magic link, création auto du profil, déconnexion
+  - [x] Soumission d'annotation par sélection de texte (offsets validés serveur)
+  - [x] Votes des contributeurs de confiance (seuil → pipeline PR)
+  - [x] Ouverture automatique de PR sur `pass-teny-content` (Octokit) + auto-merge
+  - [x] Webhook GitHub (merge → statut `merged` + réputation)
+  - [x] Réputation et montée en grade (contributeur → contributeur de confiance)
+  - [ ] Configurer le webhook GitHub (GITHUB_WEBHOOK_SECRET) — optionnel en dev
 - **Phase 2 — Découverte** (recherche, glossaire, cartes de partage)
 - **Phase 3 — Modération & V2** (file de modération, karaoké)
 

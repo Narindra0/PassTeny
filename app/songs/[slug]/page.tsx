@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSong } from "@/lib/content/source";
-import LyricsView from "@/components/LyricsView";
+import SongContent from "@/components/SongContent";
 
 interface SongPageProps {
   params: Promise<{ slug: string }>;
@@ -64,11 +64,11 @@ export default async function SongPage({ params }: SongPageProps) {
           </div>
         )}
         <p className="mt-4 text-sm text-zinc-500">
-          Cliquez sur un passage surligné pour lire son explication.
+          Sélectionnez un passage pour l’annoter — cliquez sur un passage surligné pour lire son explication.
         </p>
       </header>
 
-      <LyricsView lyrics={song.lyrics} annotations={song.annotations} />
+      <SongContent song={song} />
 
       {song.meta.source?.platform === "passio" && (
         <p className="mt-12 border-t border-zinc-200 pt-4 text-xs text-zinc-400 dark:border-zinc-800">

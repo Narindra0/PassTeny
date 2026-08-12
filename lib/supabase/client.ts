@@ -1,14 +1,12 @@
 /**
- * Client Supabase navigateur (clé anon).
- * Retourne `null` tant que le projet Supabase n'est pas configuré
- * (`.env.local`) — le site reste alors en lecture seule sur le repo content.
+ * Client Supabase navigateur (clé anon / publishable).
+ * Retourne `null` tant que le projet Supabase n'est pas configuré.
  */
 'use client'
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { isSupabaseConfigured, config } from '@/lib/config'
-
-export type Database = Record<string, unknown>
+import type { Database } from './database.types'
 
 let client: SupabaseClient<Database> | null = null
 

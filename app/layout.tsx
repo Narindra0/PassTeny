@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AuthBar from "@/components/AuthBar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,9 +29,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/" className="text-lg font-semibold tracking-tight">
               Pass<span className="text-amber-500">{"'"}</span>Teny
             </Link>
-            <span className="hidden text-xs text-zinc-500 dark:text-zinc-400 sm:block">
-              Ny hevitry ny teny
-            </span>
+            <div className="flex items-center gap-4">
+              <span className="hidden text-xs text-zinc-500 dark:text-zinc-400 md:block">
+                Ny hevitry ny teny
+              </span>
+              <AuthBar />
+            </div>
           </div>
         </header>
         <main className="flex flex-1 flex-col">{children}</main>

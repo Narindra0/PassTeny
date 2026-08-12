@@ -1,33 +1,59 @@
 /**
- * Client Supabase serveur (clé service-role).
+ * Clients Supabase côté serveur.
  *
- * Réservé aux API routes / server components — jamais importé côté client.
- * Retourne `null` tant que les variables ne sont pas configurées
- * (`.env.local`), le pipeline communautaire (phase 1) s'appuie dessus.
+ * - `createClient()` : client de session (cookies) — pour les pages et
+ *   API routes qui agissent au nom de l'utilisateur connecté (RLS active).
+ * - `getSupabaseAdmin()` : client service-role — réservé aux écritures
+ *   système (profil, index des chansons, réputation). Bypass RLS.
+ * - `getSupabaseServer()` : client anon pour les lectures publiques.
+ *
+ * Aucun de ces clients ne doit jamais être importé côté navigateur.
  */
 import 'server-only'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { cookies } from 'next/headers'
+import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseJs, type SupabaseClient } from '@supabase/supabase-js'
 import { config } from '@/lib/config'
+import type { Database } from './database.types'
 
-export type Database = Record<string, unknown>
+/** Client de session utilisateur (cookies) — RLS respectée. */
+export async function createClient(): Promise<SupabaseClient<Database> | null> {
+  if (!config.supabase.url || !config.supabase.anonKey) return null
+  const cookieStore = await cookies()
+  return createServerClient<Database>(config.supabase.url, config.supabase.anonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+        } catch {
+          // Appelé depuis un Server Component (lecture seule) : le refresh
+          // de session est alors géré par le middleware.
+        }
+      },
+    },
+  })
+}
 
 let adminClient: SupabaseClient<Database> | null = null
 
-/** Client avec la clé service-role : accès complet (modération, PR, réputation). */
+/** Client service-role : accès complet, bypass RLS (serveur uniquement). */
 export function getSupabaseAdmin(): SupabaseClient<Database> | null {
   if (!config.supabase.url || !config.supabase.serviceRoleKey) return null
   if (!adminClient) {
-    adminClient = createClient<Database>(config.supabase.url, config.supabase.serviceRoleKey, {
+    adminClient = createSupabaseJs<Database>(config.supabase.url, config.supabase.serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     })
   }
   return adminClient
 }
 
-/** Client anon côté serveur (lecture publique, soumissions authentifiées). */
+/** Client anon pour les lectures publiques côté serveur. */
 export function getSupabaseServer(): SupabaseClient<Database> | null {
   if (!config.supabase.url || !config.supabase.anonKey) return null
-  return createClient<Database>(config.supabase.url, config.supabase.anonKey, {
+  return createSupabaseJs<Database>(config.supabase.url, config.supabase.anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 }

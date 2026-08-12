@@ -53,6 +53,8 @@ export interface Annotation {
   author: string
   createdAt?: string
   updatedAt?: string
+  /** Id du profil auteur (usage serveur : pipeline PR, réputation). */
+  authorId?: string
 }
 
 /** `annotations.json` — ensemble des annotations validées d'un titre. */
