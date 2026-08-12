@@ -118,7 +118,13 @@ node scripts/seed-from-passio.mjs --dry-run  # aperçu sans écrire
   - [x] Webhook GitHub (merge → statut `merged` + réputation)
   - [x] Réputation et montée en grade (contributeur → contributeur de confiance)
   - [ ] Configurer le webhook GitHub (GITHUB_WEBHOOK_SECRET) — optionnel en dev
-- **Phase 2 — Découverte** (recherche, glossaire, cartes de partage)
+- **Phase 2 — Découverte ✅**
+  - [x] Recherche full-text (index `songs` : titre, artiste, paroles) — page `/search`
+  - [x] Glossaire des ohabolana (`/glossary`) + proposition de termes en attente d'approbation
+  - [x] Tags thématiques : vue `/tags` + page par tag (`/tags/[tag]`)
+  - [x] Cartes de partage statiques : `/api/og` (satori) + og:image sur les pages titres + bouton « Carte partageable »
+  - [x] Script d'indexation `scripts/index-content.mjs` (content → songs) + seed glossaire
+  - [ ] Upgrade recherche : appliquer `search_songs` (schema.sql) pour le classement ts_rank + recherche insensible aux accents
 - **Phase 3 — Modération & V2** (file de modération, karaoké)
 
 ## Identité visuelle

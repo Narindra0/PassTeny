@@ -22,6 +22,36 @@ export default async function Home() {
           {songs.length} titre{songs.length > 1 ? "s" : ""} · {artists.length} artiste
           {artists.length > 1 ? "s" : ""} · {annotatedCount} annoté{annotatedCount > 1 ? "s" : ""}
         </p>
+
+        <form action="/search" className="mt-6 flex max-w-xl gap-2">
+          <input
+            type="search"
+            name="q"
+            placeholder="Rechercher un titre, un artiste, une parole…"
+            className="flex-1 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 outline-none transition-colors focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-900"
+            aria-label="Rechercher"
+          />
+          <button
+            type="submit"
+            className="rounded-lg bg-zinc-900 px-5 py-2.5 font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+          >
+            Rechercher
+          </button>
+        </form>
+
+        <nav className="mt-5 flex flex-wrap gap-4 text-sm">
+          <Link href="/glossary" className="font-medium text-amber-600 hover:underline dark:text-amber-400">
+            Glossaire des ohabolana
+          </Link>
+          <span className="text-zinc-300 dark:text-zinc-700">·</span>
+          <Link href="/tags" className="font-medium text-amber-600 hover:underline dark:text-amber-400">
+            Thématiques
+          </Link>
+          <span className="text-zinc-300 dark:text-zinc-700">·</span>
+          <Link href="/search" className="font-medium text-amber-600 hover:underline dark:text-amber-400">
+            Recherche
+          </Link>
+        </nav>
       </section>
 
       <section className="mb-12">

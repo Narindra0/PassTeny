@@ -134,6 +134,22 @@ insert into public.settings (key, value) values
   ('moderation',            '{"launch_mode": "manual"}')   -- manual → équipe ; community → vote
 on conflict (key) do nothing;
 
+-- ── Recherche full-text (upgrade — à appliquer pour le classement ts_rank) ──
+-- La recherche V1 utilise ILIKE multi-champs via PostgREST (aucune migration).
+-- Pour un classement par pertinence et la recherche de mots entiers, appliquer
+-- cette fonction puis interroger : POST /rest/v1/rpc/search_songs
+create or replace function public.search_songs(query text, max_results integer default 20)
+returns setof public.songs
+language sql
+stable
+as $$
+  select *
+    from public.songs
+   where search @@ websearch_to_tsquery('simple', public.unaccent_text(coalesce(query, '')))
+   order by ts_rank(search, websearch_to_tsquery('simple', public.unaccent_text(coalesce(query, '')))) desc
+   limit max_results;
+$$;
+
 -- ── Fonctions utilitaires ────────────────────────────────────────────────────
 create or replace function public.set_updated_at()
 returns trigger language plpgsql as $$

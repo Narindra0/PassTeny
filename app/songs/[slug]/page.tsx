@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSong } from "@/lib/content/source";
+import { config } from "@/lib/config";
 import SongContent from "@/components/SongContent";
+import ShareCard from "@/components/ShareCard";
 
 interface SongPageProps {
   params: Promise<{ slug: string }>;
@@ -14,13 +16,14 @@ export async function generateMetadata({ params }: SongPageProps): Promise<Metad
   const { slug } = await params;
   const song = await getSong(slug);
   if (!song) return { title: "Titre introuvable" };
+  const ogUrl = `${config.siteUrl}/api/og?title=${encodeURIComponent(song.title)}&artist=${encodeURIComponent(song.artist)}`;
   return {
     title: `${song.title} — ${song.artist}`,
     description: `Lyrics et annotations de « ${song.title} » par ${song.artist}. Comprendre chaque parole.`,
     openGraph: {
       title: `${song.title} — ${song.artist}`,
       description: `Lyrics et annotations sur Pass'Teny.`,
-      images: song.coverUrl ? [{ url: song.coverUrl }] : undefined,
+      images: [{ url: ogUrl, width: 1200, height: 630 }],
     },
   };
 }
@@ -44,10 +47,19 @@ export default async function SongPage({ params }: SongPageProps) {
       </nav>
 
       <header className="mb-10">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{song.title}</h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          {song.artist} · {song.album}
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{song.title}</h1>
+            <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+              {song.artist} · {song.album}
+            </p>
+          </div>
+          <ShareCard
+            title={song.title}
+            artist={song.artist}
+            quote={song.lyrics.split("\n")[0] ?? undefined}
+          />
+        </div>
         {song.meta.releaseDate && (
           <p className="mt-1 text-sm text-zinc-500">{song.meta.releaseDate}</p>
         )}
