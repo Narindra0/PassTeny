@@ -1,0 +1,37 @@
+/**
+ * Pass'Teny — Configuration centralisée (variables d'environnement).
+ *
+ * Aucune valeur sensible n'est commitée : tout passe par .env / .env.local
+ * (voir `.env.example`).
+ */
+
+export const config = {
+  siteUrl:
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.NODE_ENV === 'production'
+      ? 'https://teny.passiio.shop'
+      : 'http://localhost:3000'),
+
+  /**
+   * Source du contenu.
+   * - Dev (par défaut) : dossier local `content/` (miroir du repo content).
+   * - Prod : repo GitHub public via `raw.githubusercontent.com` + API GitHub.
+   */
+  contentRepo: process.env.CONTENT_REPO || 'Narindra0/pass-teny-content',
+  contentBranch: process.env.CONTENT_BRANCH || 'main',
+  useLocalContent: process.env.CONTENT_LOCAL === 'true' || process.env.NODE_ENV !== 'production',
+
+  supabase: {
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    /** Clé service-role : réservée au serveur (jamais exposée au client). */
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+  },
+
+  /** Token GitHub (fine-grained) utilisé côté serveur pour ouvrir/merger les PR. */
+  githubToken: process.env.GITHUB_TOKEN || '',
+} as const
+
+export function isSupabaseConfigured() {
+  return Boolean(config.supabase.url && config.supabase.anonKey)
+}
