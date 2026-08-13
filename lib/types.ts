@@ -79,6 +79,7 @@ export interface SongSummary {
   artist: string
   album: string
   coverUrl?: string
+  releaseDate?: string
   annotationCount: number
   language?: string[]
 }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSong } from "@/lib/content/source";
 import { config } from "@/lib/config";
+import CoverImage from "@/components/CoverImage";
 import SongContent from "@/components/SongContent";
 import ShareCard from "@/components/ShareCard";
 
@@ -48,11 +49,20 @@ export default async function SongPage({ params }: SongPageProps) {
 
       <header className="mb-10">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{song.title}</h1>
-            <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-              {song.artist} · {song.album}
-            </p>
+          <div className="flex items-start gap-4">
+            <CoverImage
+              src={song.coverUrl}
+              alt={`Couverture de « ${song.title} »`}
+              size="detail"
+              eager
+              className="h-24 w-24 shrink-0 rounded-xl border border-zinc-200 object-cover shadow-sm dark:border-zinc-700 sm:h-28 sm:w-28"
+            />
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{song.title}</h1>
+              <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+                {song.artist} · {song.album}
+              </p>
+            </div>
           </div>
           <ShareCard
             title={song.title}

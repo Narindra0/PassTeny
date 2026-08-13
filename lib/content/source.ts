@@ -141,6 +141,7 @@ export async function listSongs(): Promise<SongSummary[]> {
       artist: meta?.artist || song.artist,
       album: meta?.album || song.album || '',
       coverUrl: meta?.coverUrl || song.coverUrl,
+      releaseDate: meta?.releaseDate,
       annotationCount: annotations.length,
       language: meta?.language,
     })

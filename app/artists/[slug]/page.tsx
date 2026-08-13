@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getArtist, getArtistSongs } from "@/lib/content/source";
+import { getArtistImage } from "@/lib/imageUtils";
+import CoverImage from "@/components/CoverImage";
 
 interface ArtistPageProps {
   params: Promise<{ slug: string }>;
@@ -22,6 +24,9 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
 
   if (!artist) notFound();
 
+  // Photo de profil si valide, sinon cover de la release la plus récente.
+  const artistImage = getArtistImage(artist.coverUrl, songs);
+
   return (
     <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
       <nav className="mb-6 text-sm text-zinc-500">
@@ -30,11 +35,22 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
         </Link>
       </nav>
 
-      <header className="mb-10">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{artist.name}</h1>
-        <p className="mt-2 text-zinc-500">
-          {artist.songCount} titre{artist.songCount > 1 ? "s" : ""} sur Pass{"'"}Teny
-        </p>
+      <header className="mb-10 flex flex-wrap items-center gap-5">
+        <CoverImage
+          src={artistImage.src}
+          alt={`${artist.name} — photo`}
+          size="thumb"
+          fallback={artistImage.fallback}
+          eager
+          skipImageKitFallback
+          className="h-20 w-20 shrink-0 rounded-full border border-zinc-200 object-cover dark:border-zinc-700"
+        />
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{artist.name}</h1>
+          <p className="mt-2 text-zinc-500">
+            {artist.songCount} titre{artist.songCount > 1 ? "s" : ""} sur Pass{"'"}Teny
+          </p>
+        </div>
       </header>
 
       <div className="flex flex-col divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">

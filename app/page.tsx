@@ -1,10 +1,22 @@
 import Link from "next/link";
 import { listArtists, listSongs } from "@/lib/content/source";
+import { getArtistImage } from "@/lib/imageUtils";
+import CoverImage from "@/components/CoverImage";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const [artists, songs] = await Promise.all([listArtists(), listSongs()]);
+
+  // Songs groupés par artiste → getArtistImage (photo de profil sinon cover de la
+  // release la plus récente), même logique que la page artiste.
+  const songsByArtist = new Map<string, typeof songs>();
+  for (const song of songs) {
+    const list = songsByArtist.get(song.artistSlug) ?? [];
+    list.push(song);
+    songsByArtist.set(song.artistSlug, list);
+  }
+  const artistImages = new Map(artists.map((a) => [a.slug, getArtistImage(a.coverUrl, songsByArtist.get(a.slug) ?? [])]));
   const annotatedCount = songs.filter((s) => s.annotationCount > 0).length;
 
   return (
@@ -65,6 +77,15 @@ export default async function Home() {
               href={`/artists/${artist.slug}`}
               className="group rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-amber-300 hover:bg-amber-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-amber-700 dark:hover:bg-zinc-800"
             >
+              <CoverImage
+                src={artistImages.get(artist.slug)?.src}
+                alt=""
+                size="thumb"
+                fallback={artistImages.get(artist.slug)?.fallback}
+                skipImageKitFallback
+                eager={artist.slug === artists[0]?.slug}
+                className="mb-3 h-14 w-14 rounded-full border border-zinc-200 object-cover dark:border-zinc-700"
+              />
               <div className="text-base font-semibold group-hover:text-amber-600 dark:group-hover:text-amber-400">
                 {artist.name}
               </div>
@@ -87,17 +108,12 @@ export default async function Home() {
               href={`/songs/${song.slug}`}
               className="group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
             >
-              {song.coverUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={song.coverUrl}
-                  alt=""
-                  className="h-10 w-10 shrink-0 rounded-md object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="h-10 w-10 shrink-0 rounded-md bg-zinc-100 dark:bg-zinc-800" />
-              )}
+              <CoverImage
+                src={song.coverUrl}
+                alt=""
+                size="thumb"
+                className="h-10 w-10 shrink-0 rounded-md object-cover"
+              />
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium group-hover:text-amber-600 dark:group-hover:text-amber-400">
                   {song.title}
