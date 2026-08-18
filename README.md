@@ -98,6 +98,23 @@ node scripts/seed-from-passio.mjs            # 28 titres avec lyrics (API Pass'i
 node scripts/seed-from-passio.mjs --dry-run  # aperçu sans écrire
 ```
 
+### Migrations automatiques
+
+`schema.sql` est appliqué au projet Supabase **automatiquement** par
+`scripts/db-migrate.mjs` (API Management Supabase — le même canal que le SQL
+Editor), déclenché avant chaque `npm run dev` et `npm run build`. Le schéma est
+rejouable (`if not exists`, `drop policy if exists`, `on conflict do nothing`).
+
+```bash
+npm run db:migrate            # appliquer maintenant
+npm run db:migrate -- --strict  # exit 1 si échec (CI)
+```
+
+Prérequis unique : un jeton `SUPABASE_ACCESS_TOKEN` dans `.env.local`
+(Supabase → Account → Access Tokens, permission database write). Sans jeton,
+la migration est ignorée sans bloquer le démarrage — le code retombe alors sur
+l'ancien comportement.
+
 ## État d'avancement
 
 - **Phase 0 — Fondations ✅**
@@ -112,6 +129,8 @@ node scripts/seed-from-passio.mjs --dry-run  # aperçu sans écrire
   - [ ] Déploiement Vercel + domaine `teny.passiio.shop` *(compte Vercel)*
 - **Phase 1 — Contribution ✅ (en cours de finalisation)**
   - [x] Auth Supabase : magic link, création auto du profil, déconnexion
+  - [x] Onboarding au premier login : choix du pseudo + liens Facebook/Instagram optionnels
+    (colonnes `facebook_url`, `instagram_url`, `onboarding_done` — migration auto via `npm run db:migrate`)
   - [x] Soumission d'annotation par sélection de texte (offsets validés serveur)
   - [x] Votes des contributeurs de confiance (seuil → pipeline PR)
   - [x] Ouverture automatique de PR sur `pass-teny-content` (Octokit) + auto-merge
@@ -124,13 +143,53 @@ node scripts/seed-from-passio.mjs --dry-run  # aperçu sans écrire
   - [x] Tags thématiques : vue `/tags` + page par tag (`/tags/[tag]`)
   - [x] Cartes de partage statiques : `/api/og` (satori) + og:image sur les pages titres + bouton « Carte partageable »
   - [x] Script d'indexation `scripts/index-content.mjs` (content → songs) + seed glossaire
-  - [ ] Upgrade recherche : appliquer `search_songs` (schema.sql) pour le classement ts_rank + recherche insensible aux accents
+  - [x] Recherche fluide : insensible aux accents (normalisation app), extraits de paroles, classement par pertinence — la RPC `search_songs` (ts_rank, schema.sql) est utilisée automatiquement dès qu'appliquée au projet Supabase
+  - [x] **Ajout de lyrics (« Proposer un titre »)** : recherche du titre dans le catalogue Pass'io
+    (`/api/passio/*`, proxy serveur), ajout des paroles en **LRC ou TXT** (pré-remplissage si
+    Pass'io les possède), **quota journalier** par utilisateur (`settings.lyrics_quota`, défaut 5),
+    anti-doublon atomique (index unique `artist_slug, song_slug`)
+  - [x] **Publication « tout automatique »** (`settings.moderation.launch_mode` = `auto` par défaut) :
+    la soumission publie directement sur le repo content (commit sur `main`, pas de PR) — la limite
+    journalière (quota) est le seul frein. Mode `manual` : la suggestion reste en attente et
+    l'approbation d'un modérateur (`/moderation`) déclenche la publication. Les publications sont
+    sérialisées (chaque commit relit `index.json` fraîchement → zéro conflit même si deux
+    utilisateurs soumettent en même temps). En dev, le miroir local `content/` est synchronisé
+    automatiquement (`git pull`) après chaque publication.
+  - [x] Bootstrap des modérateurs : `MODERATOR_EMAILS` au login, sinon le premier inscrit (fondateur)
+    est promu tant qu'aucun modérateur n'existe
+  - [x] Interface compte dans le header : menu profil (pseudo, rôle, « Ajouter une parole », déconnexion)
+- **Identité visuelle ✅** — « Ny lamban'ny teny » : palette lamba (ivoire/latérite/vert/or),
+  typographies Fraunces + Spline Sans/Mono, bande tissée signature, paroles en serif
+  recueil, carte OG refondue, mode sombre neutralisé
+- **Images ✅** — fallback Cloudinary → ImageKit (`a6ywpqgqor`) → placeholder SVG,
+  avatars artistes avec cover de release en repli (système Frontend4Fan)
 - **Phase 3 — Modération & V2** (file de modération, karaoké)
 
 ## Identité visuelle
 
-**En attente de décision** — une identité éditoriale/culturelle propre sera
-définie dans une étape dédiée (le template actuel est volontairement neutre).
+**Direction : « Ny lamban'ny teny » — le tissage des mots.**
+Identité éditoriale claire (pas de dark premium façon Pass'io), inspirée du
+lamba akotofahana, le tissu de soie traditionnel malgache.
+
+| Axe | Choix |
+|---|---|
+| Palette | Ivoire papier `#f7f1e4`, encre `#211b12`, rouge latérite `#a63a2b`, vert `#43633f`, or `#c4912e` |
+| Signature | Bande tissée `.lamba-band` (frise de segments latérite/ivoire/vert/or/encre) sous le header et au-dessus du footer + losange tissé `.lamba-mark` (marque du logo) |
+| Display | **Fraunces** (serif éditoriale, italiques pour « teny ») |
+| Corps | **Spline Sans** |
+| Données | **Spline Sans Mono** (compteurs, libellés, breadcrumbs) |
+| Paroles | Serif Fraunces (lecture façon recueil) — `.lyric-line` |
+| Mode sombre | Neutralisé (`@custom-variant dark` inactif) — thème clair par nature |
+| Carte OG | Ivoire + bande tissée en segments flex (satori) + Fraunces via `next/font` |
+
+Le remap des tokens Tailwind (`zinc` → palette ivoire, `amber` → rouge
+latérite) fait hériter toutes les pages de l'identité sans réécriture massive.
+
+**Pass premium « chart éditorial »** — composition inspirée de Genius (le
+« déjà-vu » du leader des annotations) réexprimée dans les couleurs lamba :
+bandeaux encre (header/footer), classement numéroté du catalogue (`.rank-num`),
+top annotateurs communautaire, et surligneur or (`.bg-hl`) sur les passages
+annotés — le jaune Genius tissé en or lamba.
 
 ## Points ouverts
 

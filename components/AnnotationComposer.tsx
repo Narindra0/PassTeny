@@ -71,27 +71,28 @@ export default function AnnotationComposer({ songSlug, selection, onClose, onSub
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white p-4 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] dark:border-zinc-800 dark:bg-zinc-900 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[26rem] sm:rounded-2xl sm:border">
+    <div className="card fixed inset-x-0 bottom-0 z-40 m-4 rounded-2xl p-4 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[26rem] sm:m-0 sm:rounded-lg">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold">Annoter ce passage</h3>
-          <blockquote className="mt-1 border-l-2 border-amber-400 pl-2 text-xs italic text-zinc-600 dark:text-zinc-400">
+          <h3 className="font-display text-sm font-semibold text-ink">Annoter ce passage</h3>
+          <blockquote className="mt-1 border-l-2 border-lamba-red pl-2 text-xs italic text-ink-soft">
             {selection.quote}
           </blockquote>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 text-zinc-400 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line-strong text-sm text-ink transition-colors hover:bg-ink hover:text-paper"
           aria-label="Fermer"
         >
-          ✕
+          <i className="fa-solid fa-xmark" aria-hidden="true" />
         </button>
       </div>
 
       {status === 'sent' ? (
-        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
-          ✓ Annotation soumise — en attente de validation par la communauté.
+        <p className="badge badge-soft-copper">
+          <i className="fa-solid fa-circle-check" aria-hidden="true" />
+          Annotation soumise — en attente de validation.
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -103,7 +104,7 @@ export default function AnnotationComposer({ songSlug, selection, onClose, onSub
               rows={3}
               required
               placeholder="Ex. : « Tia anao » — déclaration d’amour…"
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal outline-none transition-colors focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800"
+              className="input mt-1 font-normal normal-case tracking-normal"
             />
           </label>
           <label className="flex flex-col gap-1 text-xs font-medium">
@@ -112,14 +113,14 @@ export default function AnnotationComposer({ songSlug, selection, onClose, onSub
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="amour, ohabolana"
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal outline-none transition-colors focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800"
+              className="input mt-1 font-normal normal-case tracking-normal"
             />
           </label>
-          {status === 'error' && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+          {status === 'error' && <p className="text-xs font-medium text-red">{error}</p>}
           <button
             type="submit"
             disabled={status === 'sending'}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+            className="btn btn-primary w-full"
           >
             {status === 'sending' ? 'Envoi…' : 'Soumettre'}
           </button>

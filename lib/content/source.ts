@@ -184,6 +184,103 @@ export async function getSong(slug: string): Promise<Song | null> {
   }
 }
 
+// ── Albums (releases) ───────────────────────────────────────────────────────
+
+/** Slug d'album déterministe : `artisteSlug--titre-slugifie`. */
+export function albumSlug(artistSlug: string, album: string): string {
+  const title = album
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return `${artistSlug}--${title || 'album'}`
+}
+
+/** Type de release déduit du nombre de titres (album / EP / single). */
+export type ReleaseType = 'Album' | 'EP' | 'Single'
+
+export function releaseType(trackCount: number): ReleaseType {
+  if (trackCount === 1) return 'Single'
+  if (trackCount <= 3) return 'EP'
+  return 'Album'
+}
+
+/** Un album (release) du catalogue, avec sa tracklist. */
+export interface Album {
+  slug: string
+  album: string
+  artist: string
+  artistSlug: string
+  coverUrl?: string | null
+  trackCount: number
+  annotationCount: number
+  /** Pistes dans l'ordre du catalogue (ordre de l'album). */
+  tracks: SongSummary[]
+  type: ReleaseType
+}
+
+/** Toutes les releases du catalogue, groupées par artiste + album. */
+export async function listAlbums(): Promise<Album[]> {
+  const songs = await listSongs()
+  const groups = new Map<string, SongSummary[]>()
+  for (const song of songs) {
+    const key = `${song.artistSlug}__${song.album}`
+    const list = groups.get(key) ?? []
+    list.push(song)
+    groups.set(key, list)
+  }
+  return [...groups.values()].map((tracks) => {
+    const first = tracks[0]!
+    return {
+      slug: albumSlug(first.artistSlug, first.album),
+      album: first.album,
+      artist: first.artist,
+      artistSlug: first.artistSlug,
+      coverUrl: first.coverUrl,
+      trackCount: tracks.length,
+      annotationCount: tracks.reduce((n, s) => n + s.annotationCount, 0),
+      tracks,
+      type: releaseType(tracks.length),
+    }
+  })
+}
+
+/** Les releases d'un artiste. */
+export async function listArtistAlbums(artistSlug: string): Promise<Album[]> {
+  const albums = await listAlbums()
+  return albums.filter((a) => a.artistSlug === artistSlug)
+}
+
+/** Un album par son slug (`artisteSlug--titre-slugifie`). */
+export async function getAlbum(slug: string): Promise<Album | null> {
+  const albums = await listAlbums()
+  return albums.find((a) => a.slug === slug) ?? null
+}
+
+/**
+ * Classement des annotateurs — le « top » communautaire.
+ * Agrège les auteurs d'annotations validées sur tout le catalogue,
+ * trié par nombre de notes décroissant. Vide tant que le catalogue
+ * n'a pas d'annotations (état d'invitation).
+ */
+export async function listAnnotators(limit = 8): Promise<{ author: string; count: number }[]> {
+  const index = await getIndex()
+  if (!index) return []
+  const counts = new Map<string, number>()
+  for (const song of index.songs) {
+    const { annotations } = await readSongFiles(song.artistSlug, song.slug)
+    for (const ann of annotations) {
+      if (!ann.author) continue
+      counts.set(ann.author, (counts.get(ann.author) ?? 0) + 1)
+    }
+  }
+  return [...counts.entries()]
+    .map(([author, count]) => ({ author, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit)
+}
+
 /** Version canon (repo Git) du fichier annotations.json d'un titre. */
 export async function getCanonicalAnnotations(artistSlug: string, songSlug: string): Promise<AnnotationsFile> {
   if (isLocalMode()) {

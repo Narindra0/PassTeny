@@ -31,7 +31,9 @@ interface CoverImageProps {
 
 /**
  * Image avec la chaîne de fallback de Pass'io :
- * URL Cloudinary (optimisée) → équivalent ImageKit → fallback custom → placeholder SVG.
+ * équivalent ImageKit (les covers Cloudinary renvoient 401 systématiquement —
+ * compte restreint — on sert donc directement le miroir ImageKit, dès le SSR)
+ * → fallback custom → placeholder SVG.
  * Reproduit OptimizedImage.jsx / handleImageError de Frontend4Fan.
  */
 export default function CoverImage({
@@ -104,8 +106,11 @@ function resolveFallback(fallback: string | null | undefined, size: ImageSize): 
 
 /**
  * Chaîne de fallback indexée par `attempt` :
- * 0 → src (optimisée) ; 1 → équivalent ImageKit de src (sauf si skip) ;
- * 2 → fallback custom ; 3+ → placeholder.
+ * 0 → équivalent ImageKit de src (les Cloudinary sont 401) ;
+ * 1 → fallback custom ; 2+ → placeholder.
+ * Le `skipImageKitFallback` (avatars artistes) garde la source d'origine en
+ * première passe, car tous les ProfilePic Cloudinary pointent vers le même
+ * fichier générique sur ImageKit.
  */
 function resolveCurrentSrc(
   src: string | null | undefined,
@@ -119,22 +124,17 @@ function resolveCurrentSrc(
   }
 
   if (attempt === 0) {
-    // Première passe : URL d'origine, optimisée (Cloudinary reste Cloudinary → 401 en dev).
-    return optimize(src, size);
-  }
-
-  if (attempt === 1) {
-    // Cloudinary 401 → tenter l'équivalent ImageKit (sauf si l'étape est sautée).
+    // Première passe : équivalent ImageKit si convertible (Cloudinary = 401),
+    // sinon la source d'origine optimisée.
     if (!skipImageKitFallback) {
       const imageKitUrl = isCloudinaryUrl(src) ? cloudinaryToImageKitUrl(src) : null;
       if (imageKitUrl) return optimize(imageKitUrl, size);
     }
-    // Pas de conversion possible → passer au fallback custom.
-    return resolveFallback(fallback, size);
+    return optimize(src, size);
   }
 
-  if (attempt === 2) {
-    // Fallback custom (ex. cover d'album pour un avatar artiste).
+  // Fallback custom (ex. cover d'album pour un avatar artiste), puis placeholder.
+  if (attempt === 1) {
     return resolveFallback(fallback, size);
   }
 

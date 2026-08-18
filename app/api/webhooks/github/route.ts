@@ -1,6 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
-import { getSupabaseAdmin } from '@/lib/supabase/server'
-import { recalcReputation } from '@/lib/reputation'
+import { markPrMerged } from '@/lib/prService'
 import type { NextRequest } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -9,8 +8,9 @@ export const dynamic = 'force-dynamic'
  * Webhook GitHub — `pull_request` merged sur le repo content.
  *
  * 1. Vérifie la signature HMAC (GITHUB_WEBHOOK_SECRET).
- * 2. Passe les annotations liées à la PR en `merged`.
- * 3. Recalcule la réputation des auteurs et des votants.
+ * 2. Passe les annotations et suggestions de lyrics liées à la PR en `merged`
+ *    et recalcule la réputation (via `markPrMerged`, partagé avec l'auto-merge
+ *    déclenché depuis l'app).
  *
  * Sécurité : consomme le corps brut pour la vérification, répond vite.
  */
@@ -51,41 +51,9 @@ export async function POST(request: NextRequest) {
     return Response.json({ ok: true, ignored: true })
   }
 
-  const admin = getSupabaseAdmin()
-  if (!admin) return Response.json({ error: 'Supabase non configuré' }, { status: 500 })
+  const merged = await markPrMerged(payload.number)
 
-  // Récupère les annotations liées à cette PR (statut `approved`).
-  const { data: annotations } = await admin
-    .from('annotations')
-    .select('id, author_id, status')
-    .eq('pr_number', payload.number)
-    .in('status', ['approved'])
-
-  if (!annotations || annotations.length === 0) {
-    return Response.json({ ok: true, merged: 0 })
-  }
-
-  await admin
-    .from('annotations')
-    .update({ status: 'merged' })
-    .eq('pr_number', payload.number)
-    .in('status', ['approved'])
-
-  // Réputation : auteurs + votants de ces annotations.
-  const annotationIds = annotations.map((a) => a.id)
-  const { data: votes } = await admin
-    .from('votes')
-    .select('voter_id')
-    .in('annotation_id', annotationIds)
-
-  const affected = new Set<string>()
-  for (const ann of annotations) {
-    if (ann.author_id) affected.add(ann.author_id)
-  }
-  for (const vote of votes ?? []) affected.add(vote.voter_id)
-  await Promise.all([...affected].map((id) => recalcReputation(id)))
-
-  return Response.json({ ok: true, merged: annotations.length })
+  return Response.json({ ok: true, merged })
 }
 
 function safeEqual(a: string, b: string): boolean {

@@ -4,11 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "node scripts/db-migrate.mjs",
     "build": "next build",
+    "prebuild": "node scripts/db-migrate.mjs",
     "start": "next start",
+    "db:migrate": "node scripts/db-migrate.mjs",
     "lint": "eslint"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "@octokit/rest": "^22.0.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",

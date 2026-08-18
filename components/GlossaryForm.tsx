@@ -41,29 +41,33 @@ export default function GlossaryForm() {
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-      <h2 className="text-lg font-semibold">Proposer un terme</h2>
-      <p className="mt-1 text-sm text-zinc-500">
+    <div className="card p-6">
+      <h2 className="font-display text-lg font-semibold text-ink">
+        <i className="fa-solid fa-feather-pointed mr-2 text-red" aria-hidden="true" />
+        Proposer un terme
+      </h2>
+      <p className="mt-1 text-sm text-ink-soft">
         Ohabolana, expressions, double-sens… soumettez-le, la communauté l’approuvera.
       </p>
 
       {status === 'sent' ? (
-        <p className="mt-4 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
-          ✓ Terme proposé — en attente d’approbation.
+        <p className="mt-4 rounded-xl border border-green/40 bg-green/10 p-4 text-sm text-ink">
+          <i className="fa-solid fa-circle-check mr-2 text-green" aria-hidden="true" />
+          Terme proposé — en attente d’approbation.
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-xs font-medium">
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-ink-soft">
             Terme / expression
             <input
               value={term}
               onChange={(e) => setTerm(e.target.value)}
               required
               placeholder="Ex. : Ny aina aza very, ny haja no tiana"
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal outline-none focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800"
+              className="input mt-1 font-normal normal-case tracking-normal"
             />
           </label>
-          <label className="flex flex-col gap-1 text-xs font-medium">
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-ink-soft">
             Signification
             <textarea
               value={meaning}
@@ -71,25 +75,40 @@ export default function GlossaryForm() {
               required
               rows={2}
               placeholder="Ce que cela signifie, le contexte d'usage…"
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal outline-none focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800"
+              className="input mt-1 font-normal normal-case tracking-normal"
             />
           </label>
-          <label className="flex flex-col gap-1 text-xs font-medium">
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-ink-soft">
             Exemple d{"'"}usage (optionnel)
             <input
               value={example}
               onChange={(e) => setExample(e.target.value)}
               placeholder="Dans quelle situation on l'emploie…"
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal outline-none focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800"
+              className="input mt-1 font-normal normal-case tracking-normal"
             />
           </label>
-          {status === 'error' && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+          {status === 'error' && (
+            <p className="text-xs font-medium text-red">
+              <i className="fa-solid fa-triangle-exclamation mr-1.5" aria-hidden="true" />
+              {error}
+            </p>
+          )}
           <button
             type="submit"
             disabled={status === 'sending'}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+            className="btn btn-primary mt-1"
           >
-            {status === 'sending' ? 'Envoi…' : 'Proposer'}
+            {status === 'sending' ? (
+              <>
+                <i className="fa-solid fa-spinner fa-spin" aria-hidden="true" />
+                Envoi…
+              </>
+            ) : (
+              <>
+                <i className="fa-solid fa-paper-plane" aria-hidden="true" />
+                Proposer
+              </>
+            )}
           </button>
         </form>
       )}

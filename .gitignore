@@ -40,6 +40,15 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Freebuff desktop — base locale de l'app, à ne pas versionner ni surveiller (Turbopack panique sur les fichiers verrouillés)
+.freebuff/
+desktop-v2.db
+desktop-v2.db-shm
+desktop-v2.db-wal
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cache local (index Passio persisté)
+.cache/

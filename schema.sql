@@ -6,7 +6,9 @@
 --   glossaire, seuils paramétrables, index de recherche du contenu Git.
 -- Le contenu canon (lyrics + annotations validées) reste dans le repo Git.
 --
--- Application : dans le SQL Editor du projet Supabase.
+-- Application : automatique via `npm run db:migrate` (scripts/db-migrate.mjs,
+-- API Management Supabase — déclenché avant chaque `npm run dev`/`build`).
+-- Le fichier est rejouable (idempotent) : on peut le relancer sans risque.
 -- ============================================================================
 
 create extension if not exists "pg_trgm";
@@ -23,14 +25,17 @@ exception when duplicate_object then null; end $$;
 
 -- ── Profils ──────────────────────────────────────────────────────────────────
 create table if not exists public.profiles (
-  id            uuid primary key references auth.users (id) on delete cascade,
-  username      text unique not null check (char_length(username) between 3 and 24),
-  display_name  text,
-  github_handle text,
-  role          public.user_role not null default 'contributor',
-  reputation    integer not null default 0,
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now()
+  id              uuid primary key references auth.users (id) on delete cascade,
+  username        text unique not null check (char_length(username) between 3 and 24),
+  display_name    text,
+  github_handle   text,
+  facebook_url    text,
+  instagram_url   text,
+  onboarding_done boolean not null default false,  -- premier login : pseudo + réseaux saisis
+  role            public.user_role not null default 'contributor',
+  reputation      integer not null default 0,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
 );
 
 -- ── Index du contenu Git (pour recherche & navigation) ──────────────────────
@@ -62,6 +67,30 @@ create table if not exists public.songs (
 
 create index if not exists songs_search_idx on public.songs using gin (search);
 create index if not exists songs_artist_idx on public.songs (artist_slug);
+
+-- ── Vues des titres (chart « les plus vus ») ─────────────────────────────────
+-- Compteur par titre et par jour : agrégé pour le classement. Écriture
+-- exclusive côté serveur (route /api/song-views, clé admin) — aucune policy
+-- d'écriture, le comptage n'est pas modifiable par les clients.
+create table if not exists public.song_views (
+  song_id   text not null references public.songs (id) on delete cascade,
+  view_date date not null default current_date,
+  count     integer not null default 0,
+  primary key (song_id, view_date)
+);
+
+create index if not exists song_views_song_idx on public.song_views (song_id);
+
+-- Incrément atomique (évite la course lecture-modification-écriture).
+create or replace function public.increment_song_view(p_song_id text)
+returns void
+language sql
+as $$
+  insert into public.song_views (song_id, view_date, count)
+  values (p_song_id, current_date, 1)
+  on conflict (song_id, view_date)
+  do update set count = public.song_views.count + 1;
+$$;
 
 -- ── Annotations ──────────────────────────────────────────────────────────────
 create table if not exists public.annotations (
@@ -105,6 +134,36 @@ create table if not exists public.votes (
   primary key (annotation_id, voter_id)
 );
 
+-- ── Suggestions de lyrics (ajout de titres au catalogue) ───────────────────
+create table if not exists public.lyric_suggestions (
+  id              uuid primary key default gen_random_uuid(),
+  author_id       uuid not null references public.profiles (id) on delete cascade,
+  artist_name     text not null,
+  artist_slug     text not null,
+  track_title     text not null,
+  song_slug       text not null,
+  album_title     text,
+  cover_url       text,
+  passio_track_id text,
+  passio_album_id text,
+  lyrics_format   text not null check (lyrics_format in ('lrc', 'txt')),
+  lyrics          text not null check (char_length(lyrics) >= 20),
+  status          text not null default 'pending',  -- pending / merged / rejected
+  pr_number       integer,
+  created_at      timestamptz not null default now()
+);
+
+create index if not exists lyric_suggestions_author_idx
+  on public.lyric_suggestions (author_id, created_at desc);
+create index if not exists lyric_suggestions_status_idx
+  on public.lyric_suggestions (status);
+
+-- Anti-doublon : un même titre (artiste + slug) ne peut être proposé qu'une
+-- fois — l'insert du second échoue atomiquement (race Sofie/Mark réglée).
+drop index if exists lyric_suggestions_slug_idx;
+create unique index if not exists lyric_suggestions_slug_idx
+  on public.lyric_suggestions (artist_slug, song_slug);
+
 -- ── Glossaire des expressions locales ───────────────────────────────────────
 create table if not exists public.glossary_terms (
   id         uuid primary key default gen_random_uuid(),
@@ -131,13 +190,20 @@ insert into public.settings (key, value) values
   ('roles',                 '{"trusted": {"merged": 5, "votes_received": 10}, "moderator": {"merged": 25, "age_days": 90}}'),
   ('auto_pr',               '{"min_net_votes": 3, "require_trusted_voter": true}'),
   ('auto_merge',            '{"enabled": true, "author_min_merged": 5}'),
-  ('moderation',            '{"launch_mode": "manual"}')   -- manual → équipe ; community → vote
+  ('moderation',            '{"launch_mode": "auto"}'),     -- auto → publication directe ; manual → file de modération
+  ('lyrics_quota',          '{"daily": 5}')                  -- ajouts de lyrics max / jour / utilisateur
 on conflict (key) do nothing;
 
--- ── Recherche full-text (upgrade — à appliquer pour le classement ts_rank) ──
+-- ── Onboarding — ajoute les colonnes de profil manquantes sur les projets
+-- existants (l'onboarding au premier login devient actif dès leur présence).
+alter table public.profiles
+  add column if not exists facebook_url    text,
+  add column if not exists instagram_url   text,
+  add column if not exists onboarding_done boolean not null default false;
+
+-- ── Recherche full-text (classement ts_rank, activée dès que la fonction existe) ──
 -- La recherche V1 utilise ILIKE multi-champs via PostgREST (aucune migration).
--- Pour un classement par pertinence et la recherche de mots entiers, appliquer
--- cette fonction puis interroger : POST /rest/v1/rpc/search_songs
+-- Avec cette fonction, l'app interroge : POST /rest/v1/rpc/search_songs
 create or replace function public.search_songs(query text, max_results integer default 20)
 returns setof public.songs
 language sql
@@ -193,17 +259,34 @@ alter table public.annotation_versions enable row level security;
 alter table public.votes               enable row level security;
 alter table public.glossary_terms      enable row level security;
 alter table public.settings            enable row level security;
+alter table public.lyric_suggestions   enable row level security;
+alter table public.song_views         enable row level security;
+
+-- NB : chaque `create policy` est précédé d'un `drop policy if exists` pour
+-- que schema.sql soit rejouable (migrations automatiques, `npm run db:migrate`).
 
 -- Profils : lecture publique, écriture sur son propre profil.
+drop policy if exists profiles_read  on public.profiles;
+drop policy if exists profiles_self  on public.profiles;
+drop policy if exists profiles_update on public.profiles;
 create policy profiles_read  on public.profiles for select using (true);
 create policy profiles_self  on public.profiles for insert with check (auth.uid() = id);
 create policy profiles_update on public.profiles for update using (auth.uid() = id);
 
 -- Chansons (index du contenu Git) : lecture publique.
+drop policy if exists songs_read on public.songs;
 create policy songs_read on public.songs for select using (true);
+
+-- Vues : lecture publique, écriture serveur uniquement (clé admin).
+drop policy if exists song_views_read on public.song_views;
+create policy song_views_read on public.song_views for select using (true);
 
 -- Annotations : lecture publique, soumission pour tout utilisateur connecté,
 -- mise à jour par l'auteur (pending), modération par les modérateurs.
+drop policy if exists annotations_read on public.annotations;
+drop policy if exists annotations_insert on public.annotations;
+drop policy if exists annotations_update_author on public.annotations;
+drop policy if exists annotations_moderate on public.annotations;
 create policy annotations_read on public.annotations for select using (true);
 create policy annotations_insert on public.annotations for insert
   with check (auth.uid() = author_id);
@@ -216,11 +299,16 @@ create policy annotations_moderate on public.annotations for update
   ));
 
 -- Révisions : lecture publique, insertion par l'auteur de la révision.
+drop policy if exists versions_read on public.annotation_versions;
+drop policy if exists versions_insert on public.annotation_versions;
 create policy versions_read on public.annotation_versions for select using (true);
 create policy versions_insert on public.annotation_versions for insert
   with check (auth.uid() = author_id);
 
 -- Votes : lecture publique, un vote par profil.
+drop policy if exists votes_read on public.votes;
+drop policy if exists votes_insert on public.votes;
+drop policy if exists votes_delete on public.votes;
 create policy votes_read on public.votes for select using (true);
 create policy votes_insert on public.votes for insert
   with check (
@@ -234,11 +322,23 @@ create policy votes_delete on public.votes for delete
   using (auth.uid() = voter_id);
 
 -- Glossaire : lecture publique, proposition par tout utilisateur connecté.
+drop policy if exists glossary_read on public.glossary_terms;
+drop policy if exists glossary_insert on public.glossary_terms;
 create policy glossary_read on public.glossary_terms for select using (true);
 create policy glossary_insert on public.glossary_terms for insert
   with check (auth.uid() = author_id and approved = false);
 
+-- Suggestions de lyrics : lecture publique (statut visible), proposition par
+-- l'auteur, modération par l'équipe (statut + PR).
+drop policy if exists lyric_suggestions_read on public.lyric_suggestions;
+drop policy if exists lyric_suggestions_insert on public.lyric_suggestions;
+create policy lyric_suggestions_read on public.lyric_suggestions for select using (true);
+create policy lyric_suggestions_insert on public.lyric_suggestions for insert
+  with check (auth.uid() = author_id and status = 'pending');
+
 -- Settings : lecture publique, écriture modérateurs.
+drop policy if exists settings_read on public.settings;
+drop policy if exists settings_write on public.settings;
 create policy settings_read on public.settings for select using (true);
 create policy settings_write on public.settings for update
   using (exists (

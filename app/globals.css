@@ -1,29 +1,695 @@
 @import "tailwindcss";
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
+/* ════════════════════════════════════════════════════════════════════════
+   PASS'TENY — Design System « Ny lamban'ny teny » (le tissage des mots)
+   Identité éditoriale premium inspirée du lamba akotofahana, le tissu de
+   soie traditionnel malgache. Ivoire / latérite / vert / or — encre chaude.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Le thème est clair par nature — on neutralise le mode sombre automatique. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f1e4;
+  --foreground: #211b12;
+
+  /* Palette lamba — teintes de terre et de soie, assourdies */
+  --paper: #f7f1e4;
+  --paper-alt: #efe6d1;
+  --paper-deep: #e4dac0;
+  --ink: #211b12;
+  --ink-soft: #6a6252;
+  --ink-faint: #a79d88;
+  --red: #a63a2b;          /* latérite */
+  --red-dark: #7f2a1e;
+  --red-light: #c04937;
+  --green: #43633f;
+  --mustard: #c4912e;      /* or antique */
+  --mustard-dark: #9a7223;
+  --card: #fffdf7;
+
+  /* Surligneur d'annotation — l'or lamba, clin d'œil au jaune Genius */
+  --hl: rgba(196, 145, 46, 0.15);
+  --hl-strong: rgba(196, 145, 46, 0.3);
+
+  /* Alias legacy (composants existants) */
+  --color-bordeaux: #a63a2b;
+  --color-bordeaux-light: #c04937;
+  --color-bordeaux-dark: #7f2a1e;
+  --color-bordeaux-glow: rgba(166, 58, 43, 0.14);
+  --color-bordeaux-subtle: rgba(166, 58, 43, 0.07);
+  --color-copper: #c4912e;
+  --color-copper-light: #d9ab57;
+  --color-copper-dark: #9a7223;
+  --color-green: #43633f;
+
+  /* Lignes — encre diluée */
+  --line: rgba(33, 27, 18, 0.13);
+  --line-strong: rgba(33, 27, 18, 0.28);
+
+  /* Ombres douces, diffuses (premium) */
+  --shadow-soft: 0 1px 2px rgba(33, 27, 18, 0.05), 0 6px 18px -10px rgba(33, 27, 18, 0.16);
+  --shadow-card: 0 1px 2px rgba(33, 27, 18, 0.05), 0 12px 32px -18px rgba(33, 27, 18, 0.22);
+  --shadow-card-hover: 0 2px 4px rgba(33, 27, 18, 0.06), 0 20px 44px -20px rgba(33, 27, 18, 0.3);
+  --shadow-lift: 0 8px 24px -10px rgba(33, 27, 18, 0.25);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-full: 100px;
+
+  /* Transitions */
+  --transition-base: all 0.2s ease;
+  --transition-smooth: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* ── Mapping tokens Tailwind → palette lamba ── */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Ivoire / papier */
+  --color-zinc-50: #f7f1e4;
+  --color-zinc-100: #efe6d1;
+  --color-zinc-200: #e4dac0;
+  --color-zinc-300: #d3c8ab;
+  --color-zinc-400: #a79d88;
+  --color-zinc-500: #6a6252;
+  --color-zinc-600: #544c3e;
+  --color-zinc-700: #3a3327;
+  --color-zinc-800: #211b12;
+  --color-zinc-900: #1c1710;
+  --color-zinc-950: #14100a;
+
+  /* Accent : latérite (rouge terre) */
+  --color-amber-50: #f9eee9;
+  --color-amber-100: #f2ddd5;
+  --color-amber-200: #e3b8a9;
+  --color-amber-300: #cf8a72;
+  --color-amber-400: #b9583f;
+  --color-amber-500: #a63a2b;
+  --color-amber-600: #8c2d1f;
+  --color-amber-700: #7f2a1e;
+  --color-amber-800: #611f15;
+  --color-amber-900: #43150e;
+
+  /* Tokens nommés */
+  --color-paper: var(--paper);
+  --color-paper-alt: var(--paper-alt);
+  --color-paper-deep: var(--paper-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-red: var(--red);
+  --color-red-dark: var(--red-dark);
+  --color-red-light: var(--red-light);
+  --color-green: var(--green);
+  --color-mustard: var(--mustard);
+  --color-mustard-dark: var(--mustard-dark);
+  --color-card: var(--card);
+  --color-lamba-red: var(--red);
+  --color-lamba-green: var(--green);
+  --color-lamba-gold: var(--mustard);
+  --color-lamba-dark: var(--ink);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-hl: var(--hl);
+  --color-hl-strong: var(--hl-strong);
+
+  /* Typographies — Fraunces (serif display) + Inter (corps) + JetBrains Mono (données)
+     + Space Grotesk (affiche capitales, inspiration passteny-light) */
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jb-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-grotesk: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+
+  /* Ombres */
+  --shadow-soft: var(--shadow-soft);
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-lift: var(--shadow-lift);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Titres : règle de base DANS une couche pour que les utilitaires Tailwind
+   (font-grotesk, text-paper…) puissent la surcharger — sinon, en CSS non couché,
+   elle écraserait tout (ex. titre blanc sur le hero sombre). */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 560;
+    line-height: 1.18;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+}
+
+::selection {
+  background: var(--red);
+  color: var(--paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+/* Recherche en modal : pas de contour rouge autour du champ (bordure dédiée) */
+[role="dialog"] input:focus-visible {
+  outline: none;
+}
+
+/* ── Scrollbar fine ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-soft); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   SIGNATURE — la bande tissée du lamba akotofahana
+   Frise de fils latérite / ivoire / vert / or / encre, en filigrane du site.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.lamba-band {
+  height: 5px;
+  width: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--red) 0 42px,
+    var(--paper) 42px 58px,
+    var(--green) 58px 100px,
+    var(--mustard) 100px 124px,
+    var(--ink) 124px 166px
+  );
+}
+
+/* Le losange tissé — marque du logo, pastille d'état */
+.lamba-mark {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transform: rotate(45deg);
+  border-radius: 3px;
+  border: 1px solid var(--ink);
+  background: conic-gradient(
+    from 0deg,
+    var(--red) 0 25%,
+    var(--paper) 25% 50%,
+    var(--green) 50% 75%,
+    var(--mustard) 75% 100%
+  );
+  box-shadow: 0 1px 2px rgba(33, 27, 18, 0.18);
+}
+
+/* Variante sur fond encre (bandeaux header/footer sombres) */
+.lamba-mark.on-dark {
+  border-color: rgba(247, 241, 228, 0.55);
+  box-shadow: none;
+}
+
+/* ── Rang de classement — la numérotation du chart, façon hit-parade ── */
+.rank-num {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+  width: 2.1rem;
+  text-align: center;
+  flex-shrink: 0;
+  transition: color var(--transition-base);
+}
+
+.group:hover .rank-num,
+a:hover > .rank-num {
+  color: var(--red);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   COMPOSANTS
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Eyebrow : étiquette mono latérite ── */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  display: inline-block;
+}
+
+/* ── Titre de section : serif italique façon recueil ── */
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3vw, 2.6rem);
+  font-weight: 500;
+  font-style: italic;
+  color: var(--ink);
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+
+.section-subtitle {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin-top: 0.35rem;
+}
+
+/* ── Boutons : pill éditorial, bordure fine, ombre douce ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.72rem 1.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--ink);
+  transition: var(--transition-smooth);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  line-height: 1.2;
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-primary {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+
+.btn-primary:hover {
+  background: var(--red-dark);
+  border-color: var(--red-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lift);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: var(--card);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.btn-secondary:hover {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lift);
+}
+
+.btn-copper {
+  background: var(--mustard);
+  color: #2b1d05;
+  border-color: var(--mustard);
+}
+
+.btn-copper:hover {
+  background: var(--mustard-dark);
+  border-color: var(--mustard-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lift);
+  color: #2b1d05;
+}
+
+.btn-sm { font-size: 0.75rem; padding: 0.5rem 1.05rem; }
+.btn-lg { font-size: 0.95rem; padding: 0.95rem 1.9rem; }
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ── Cartes : papier blanc, filet hairline, ombre légère (précision éditoriale) ── */
+.card {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-soft);
+  transition: var(--transition-smooth);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-family: var(--font-mono);
+}
+
+.badge-bordeaux { background: var(--red); color: #fff; }
+.badge-copper { background: var(--mustard); color: #2b1d05; }
+.badge-soft-bordeaux {
+  background: var(--color-bordeaux-subtle);
+  color: var(--red-dark);
+  border: 1px solid rgba(166, 58, 43, 0.28);
+}
+.badge-soft-copper {
+  background: rgba(196, 145, 46, 0.1);
+  color: var(--mustard-dark);
+  border: 1px solid rgba(196, 145, 46, 0.3);
+}
+
+/* ── Étiquette : libellé plat (ex-sticker), sans rotation ── */
+.sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  line-height: 1;
+  box-shadow: var(--shadow-soft);
+}
+
+.sticker.red { background: var(--red); color: #fff; border-color: var(--red); }
+.sticker.mustard { background: var(--mustard); color: #2b1d05; border-color: var(--mustard); }
+.sticker.green { background: var(--green); color: #fff; border-color: var(--green); }
+.sticker.ink { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ── Inputs ── */
+.input {
+  width: 100%;
+  padding: 0.72rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--ink);
+  transition: var(--transition-base);
+  font-family: var(--font-sans);
+  box-shadow: var(--shadow-soft);
+}
+
+.input:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(166, 58, 43, 0.12), var(--shadow-soft);
+}
+
+.input::placeholder {
+  color: var(--ink-faint);
+}
+
+/* ── Paroles : lecture façon recueil (serif) ── */
+.lyric-line {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  line-height: 2;
+  letter-spacing: 0.004em;
+}
+
+@media (min-width: 640px) {
+  .lyric-line {
+    font-size: 1.25rem;
+  }
+}
+
+/* ── Animation d'entrée ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Modal de recherche : entrée douce (voile + panneau) ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MOUVEMENT — entrée échelonnée du hero, révélations au scroll, cascades
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Hero : entrée échelonnée (delay inline par élément) */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+.rise {
+  animation: riseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Révélation au scroll (IntersectionObserver → .reveal-in) */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Apparition en cascade des cartes (delay inline par carte) */
+@keyframes cardPop {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+.card-pop {
+  animation: cardPop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Barre de progression communautaire (largeur finale en inline) */
+@keyframes growBar {
+  from { width: 0; }
+}
+
+.progress-fill {
+  animation: growBar 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Accessibilité : mouvement réduit ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Contenu visible immédiatement, sans révélation différée */
+  .reveal,
+  .rise,
+  .card-pop {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   LANDING — inspiration « passteny-light »
+   Affiche Space Grotesk en capitales, carte « Titre du jour » façon Genius,
+   rang de chart à gros numéros, bande drapeau aux couleurs du lamba.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Bande drapeau : frise rouge / vert / or / encre ── */
+.flagbar {
+  height: 4px;
+  width: 100%;
+  display: flex;
+}
+
+.flagbar span {
+  flex: 1;
+}
+
+/* ── Titre de hero : affiche en capitales ── */
+.hero-title {
+  font-family: var(--font-grotesk);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+  font-size: clamp(2.5rem, 6.5vw, 3.7rem);
+}
+
+/* Accent serif italique (le mot « teny ») — jamais en capitales */
+.serif-accent {
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+}
+
+/* ── Carte « Titre du jour » — façon Genius ── */
+.featured {
+  background: var(--card);
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.featured-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1.4rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.lyric-block {
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: var(--ink-soft);
+}
+
+/* Passage annoté : surligné latérite + soulignement rouge + pastille */
+.annot {
+  position: relative;
+  background: rgba(166, 58, 43, 0.08);
+  border-bottom: 2px solid var(--red);
+  padding: 1px 3px;
+  color: var(--ink);
+}
+
+.annot-badge {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Carte de note communautaire sous les lyrics */
+.note-card {
+  background: rgba(166, 58, 43, 0.05);
+  border-left: 3px solid var(--red);
+  border-radius: 0 6px 6px 0;
+  padding: 0.85rem 1rem;
+}
+
+.note-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 0.35rem;
+}
+
+/* ── Rang de classement : gros numéro + vinyle ── */
+.rank-card {
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.rank-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--ink);
+}
+
+.rank-num-big {
+  font-family: var(--font-grotesk);
+  font-weight: 700;
+  font-size: 3.2rem;
+  line-height: 1;
+  color: var(--red);
+  opacity: 0.22;
+}
+
+/* Boutons aux angles francs (landing) — variante du .btn pill */
+.btn-sharp {
+  border-radius: 3px;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   HERO TITRE — page lyrics, façon Genius
+   Dégradé encre → latérite, grande cover + titre Fraunces sur fond sombre.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.song-hero {
+  background: linear-gradient(180deg, #8c2d1f 0%, #611f15 45%, #3a1a12 72%, #14100a 100%);
+  color: var(--paper);
+}
+
+.song-hero-title {
+  font-family: var(--font-fraunces);
+  font-weight: 600;
+  font-size: clamp(2.3rem, 6.5vw, 3.2rem);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  color: var(--paper);
 }

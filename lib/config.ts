@@ -30,6 +30,15 @@ export const config = {
 
   /** Token GitHub (fine-grained) utilisé côté serveur pour ouvrir/merger les PR. */
   githubToken: process.env.GITHUB_TOKEN || '',
+
+  /**
+   * Emails des modérateurs de lancement (séparés par des virgules).
+   * Promus au rôle `moderator` à la connexion (voir lib/profiles.ts).
+   */
+  moderatorEmails: (process.env.MODERATOR_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
 } as const
 
 export function isSupabaseConfigured() {

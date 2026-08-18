@@ -16,6 +16,9 @@ export interface Database {
           username: string
           display_name: string | null
           github_handle: string | null
+          facebook_url: string | null
+          instagram_url: string | null
+          onboarding_done: boolean
           role: UserRole
           reputation: number
           created_at: string
@@ -26,6 +29,9 @@ export interface Database {
           username: string
           display_name?: string | null
           github_handle?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
+          onboarding_done?: boolean
           role?: UserRole
           reputation?: number
           created_at?: string
@@ -168,6 +174,58 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['glossary_terms']['Insert']>
         Relationships: []
       }
+      song_views: {
+        Row: {
+          song_id: string
+          view_date: string
+          count: number
+        }
+        Insert: {
+          song_id: string
+          view_date?: string
+          count?: number
+        }
+        Update: Partial<Database['public']['Tables']['song_views']['Insert']>
+        Relationships: []
+      }
+      lyric_suggestions: {
+        Row: {
+          id: string
+          author_id: string
+          artist_name: string
+          artist_slug: string
+          track_title: string
+          song_slug: string
+          album_title: string | null
+          cover_url: string | null
+          passio_track_id: string | null
+          passio_album_id: string | null
+          lyrics_format: 'lrc' | 'txt'
+          lyrics: string
+          status: string
+          pr_number: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          author_id: string
+          artist_name: string
+          artist_slug: string
+          track_title: string
+          song_slug: string
+          album_title?: string | null
+          cover_url?: string | null
+          passio_track_id?: string | null
+          passio_album_id?: string | null
+          lyrics_format: 'lrc' | 'txt'
+          lyrics: string
+          status?: string
+          pr_number?: number | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['lyric_suggestions']['Insert']>
+        Relationships: []
+      }
       settings: {
         Row: {
           key: string
@@ -184,7 +242,12 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      increment_song_view: {
+        Args: { p_song_id: string }
+        Returns: undefined
+      }
+    }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
   }

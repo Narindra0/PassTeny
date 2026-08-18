@@ -29,43 +29,64 @@ export default function SignInPage() {
 
   return (
     <div className="mx-auto w-full max-w-md flex-1 px-4 py-16">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-2xl font-bold tracking-tight">Rejoindre la communauté</h1>
-        <p className="mt-2 text-sm text-zinc-500">
+      <div className="card p-8">
+        <span className="sticker red">
+          <i className="fa-solid fa-users mr-1.5" aria-hidden="true" />
+          Communauté
+        </span>
+        <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight text-ink">Rejoindre la communauté</h1>
+        <p className="mt-2 text-sm text-ink-soft">
           Un lien magique vous sera envoyé par email — pas de mot de passe.
         </p>
 
         {status === 'sent' ? (
-          <div className="mt-6 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
-            {message}
+          <div className="mt-6 rounded-xl border-2 border-green bg-green/10 p-4 text-sm text-ink">
+            <p className="font-semibold">
+              <i className="fa-solid fa-circle-check mr-2 text-green" aria-hidden="true" />
+              Lien envoyé
+            </p>
+            <p className="mt-1 text-ink-soft">{message}</p>
             <p className="mt-2">
-              <Link href="/" className="font-medium underline">
+              <Link href="/" className="font-medium text-red hover:underline">
                 Retour à l’accueil
               </Link>
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-            <label className="flex flex-col gap-1.5 text-sm">
-              <span className="font-medium">Email</span>
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-ink">
+              Email
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@exemple.com"
-                className="rounded-lg border border-zinc-300 px-3 py-2 outline-none transition-colors focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800"
+                className="input"
               />
             </label>
             {status === 'error' && (
-              <p className="text-sm text-red-600 dark:text-red-400">{message}</p>
+              <p className="text-sm text-red">
+                <i className="fa-solid fa-triangle-exclamation mr-1.5" aria-hidden="true" />
+                {message}
+              </p>
             )}
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="rounded-lg bg-zinc-900 px-4 py-2.5 font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+              className="btn btn-primary w-full"
             >
-              {status === 'sending' ? 'Envoi…' : 'Recevoir le lien magique'}
+              {status === 'sending' ? (
+                <>
+                  <i className="fa-solid fa-spinner fa-spin" aria-hidden="true" />
+                  Envoi…
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-envelope-open-text" aria-hidden="true" />
+                  Recevoir le lien magique
+                </>
+              )}
             </button>
           </form>
         )}

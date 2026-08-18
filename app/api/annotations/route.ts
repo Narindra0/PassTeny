@@ -53,6 +53,23 @@ async function handlePost(request: Request) {
     return Response.json({ error: 'Supabase n’est pas configuré' }, { status: 500 })
   }
 
+  // Anti-doublon : même passage déjà soumis par le même auteur, en attente.
+  const { data: existing } = await admin
+    .from('annotations')
+    .select('id')
+    .eq('song_id', song.slug)
+    .eq('start_offset', start)
+    .eq('end_offset', end)
+    .eq('author_id', user.id)
+    .eq('status', 'pending')
+    .maybeSingle()
+  if (existing) {
+    return Response.json(
+      { error: 'Vous avez déjà soumis ce passage — il est en attente de validation.' },
+      { status: 409 },
+    )
+  }
+
   // Indexe la chanson (recherche + chemin PR). Idempotent.
   await admin.from('songs').upsert(
     {

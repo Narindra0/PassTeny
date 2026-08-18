@@ -1,7 +1,39 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Fraunces, Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import AuthBar from "@/components/AuthBar";
+import SearchModal from "@/components/SearchModal";
+import SearchTrigger from "@/components/SearchTrigger";
 import "./globals.css";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const grotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  weight: ["500", "600", "700"],
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const jbMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jb-mono",
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -20,28 +52,128 @@ export const metadata: Metadata = {
   },
 };
 
+/** Navigation du header : la page Chart est dédiée, le reste mène aux ancres de la landing. */
+const NAV_LINKS = [
+  { href: "/#eco", label: "Écosystème" },
+  { href: "/chart", label: "Chart" },
+  { href: "/#artistes", label: "Artistes" },
+];
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-black">
-        <header className="border-b border-zinc-200 dark:border-zinc-800">
-          <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-4">
-            <Link href="/" className="text-lg font-semibold tracking-tight">
-              Pass<span className="text-amber-500">{"'"}</span>Teny
-            </Link>
-            <div className="flex items-center gap-4">
-              <span className="hidden text-xs text-zinc-500 dark:text-zinc-400 md:block">
-                Ny hevitry ny teny
+    <html
+      lang="fr"
+      className={`h-full antialiased ${grotesk.variable} ${inter.variable} ${jbMono.variable} ${fraunces.variable}`}
+    >
+      <body className="flex min-h-full flex-col bg-paper">
+        {/* ── Header : bande drapeau + nav claire, miroir de la landing ── */}
+        <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-sm">
+          <div className="flagbar" aria-hidden="true">
+            <span className="bg-red" />
+            <span className="bg-green" />
+            <span className="bg-mustard" />
+            <span className="bg-ink" />
+          </div>
+          <div className="relative mx-auto flex h-[68px] w-full max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
+            {/* Marque */}
+            <Link
+              href="/"
+              className="group inline-flex shrink-0 items-center gap-2.5"
+            >
+              <span className="lamba-mark transition-transform duration-300 group-hover:rotate-[135deg]" aria-hidden="true" />
+              <span className="font-grotesk text-[1.25rem] font-bold tracking-tight text-ink transition-colors group-hover:text-red sm:text-[1.3rem]">
+                Pass<span className="text-red">&apos;</span>Teny
               </span>
+            </Link>
+
+            {/* Ancres vers les sections de la landing */}
+            <nav className="hidden items-center gap-7 lg:flex">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Recherche en pill (masquée sur mobile — bouton loupe absent, la modal reste accessible depuis la landing) */}
+            <SearchTrigger
+              label="Rechercher un titre, un artiste, une parole"
+              className="hidden max-w-xs flex-1 items-center gap-2.5 rounded-full border-[1.5px] border-line-strong bg-card px-4 py-2.5 text-left text-[0.82rem] text-ink-faint transition-colors hover:border-ink md:flex"
+            >
+              <i className="fa-solid fa-magnifying-glass text-xs" aria-hidden="true" />
+              <span className="truncate">Rechercher un titre, un artiste, une parole…</span>
+            </SearchTrigger>
+
+            <div className="flex shrink-0 items-center justify-end">
               <AuthBar />
             </div>
           </div>
         </header>
+
         <main className="flex flex-1 flex-col">{children}</main>
-        <footer className="border-t border-zinc-200 py-6 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-          <p>Pass{"'"}Teny — plateforme communautaire d{"'"}annotation des lyrics malgaches.</p>
-          <p className="mt-1">Indépendant de Pass{"'"}io · Contenu versionné sur GitHub.</p>
+
+        {/* ── Footer : bandeau encre, colonnes mono, miroir du mockup ── */}
+        <footer className="mt-20 bg-ink text-paper">
+          <div className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6">
+            <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
+              <div>
+                <p className="flex items-center gap-2.5 font-grotesk text-[1.3rem] font-bold tracking-tight text-paper">
+                  <span className="lamba-mark on-dark" aria-hidden="true" />
+                  Pass<span className="text-red">&apos;</span>Teny
+                </p>
+                <p className="mt-3 max-w-xs text-[13px] leading-relaxed text-paper/50">
+                  Plateforme communautaire d&apos;annotation des lyrics malgaches —
+                  proverbes, métaphores et références culturelles expliqués par la communauté.
+                </p>
+              </div>
+              <div>
+                <h5 className="mb-3.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.1em] text-paper/40">
+                  Découvrir
+                </h5>
+                <Link href="/glossary" className="mb-2.5 block text-[13.5px] text-paper/70 transition-colors hover:text-red">
+                  Glossaire des ohabolana
+                </Link>
+                <Link href="/tags" className="mb-2.5 block text-[13.5px] text-paper/70 transition-colors hover:text-red">
+                  Thématiques
+                </Link>
+                <Link href="/chart" className="mb-2.5 block text-[13.5px] text-paper/70 transition-colors hover:text-red">
+                  Le chart
+                </Link>
+                <SearchTrigger
+                  label="Rechercher"
+                  className="block text-left text-[13.5px] text-paper/70 transition-colors hover:text-red"
+                >
+                  Recherche
+                </SearchTrigger>
+              </div>
+              <div>
+                <h5 className="mb-3.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.1em] text-paper/40">
+                  Écosystème
+                </h5>
+                <a href="https://player.passiio.shop" target="_blank" rel="noopener noreferrer" className="mb-2.5 block text-[13.5px] text-paper/70 transition-colors hover:text-red">
+                  player.passiio.shop ↗
+                </a>
+                <a href="https://passiio.shop" target="_blank" rel="noopener noreferrer" className="mb-2.5 block text-[13.5px] text-paper/70 transition-colors hover:text-red">
+                  passiio.shop ↗
+                </a>
+                <a href="https://artist.passiio.shop" target="_blank" rel="noopener noreferrer" className="mb-2.5 block text-[13.5px] text-paper/70 transition-colors hover:text-red">
+                  artist.passiio.shop ↗
+                </a>
+              </div>
+            </div>
+            <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-paper/15 pt-5 font-mono text-[11px] uppercase tracking-[0.1em] text-paper/40 sm:flex-row">
+              <p>© {new Date().getFullYear()} Pass&apos;Teny · Ny hevitry ny teny</p>
+              <p>Indépendant de Pass&apos;io · Contenu versionné sur GitHub</p>
+            </div>
+          </div>
         </footer>
+
+        {/* Recherche en modal (remplace la page /search) */}
+        <SearchModal />
       </body>
     </html>
   );

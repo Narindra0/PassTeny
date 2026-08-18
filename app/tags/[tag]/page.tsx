@@ -19,16 +19,18 @@ export default async function TagPage({ params }: TagPageProps) {
 
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
-      <nav className="mb-4 text-sm text-zinc-500">
-        <Link href="/tags" className="hover:text-amber-600">
+      <nav className="mb-6 font-mono text-xs uppercase tracking-wider text-ink-soft">
+        <Link href="/tags" className="transition-colors hover:text-red">
+          <i className="fa-solid fa-arrow-left mr-1.5" aria-hidden="true" />
           Thématiques
         </Link>
-        <span className="mx-2">/</span>
-        <span className="font-medium text-zinc-800 dark:text-zinc-200">#{tag}</span>
       </nav>
 
-      <h1 className="text-3xl font-bold tracking-tight">#{tag}</h1>
-      <p className="mt-2 text-sm text-zinc-500">
+      <h1 className="font-display text-4xl font-semibold tracking-tight text-ink">
+        <span className="text-red">#</span>{tag}
+      </h1>
+      <p className="mt-2 text-sm text-ink-soft">
+        <i className="fa-solid fa-pen-nib mr-1.5" aria-hidden="true" />
         {annotations.length} annotation{annotations.length > 1 ? 's' : ''}
       </p>
 
@@ -36,18 +38,22 @@ export default async function TagPage({ params }: TagPageProps) {
         {annotations.map((ann) => (
           <article
             key={ann.id}
-            className="rounded-2xl border border-zinc-200 bg-white p-5 transition-colors hover:border-amber-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-amber-700"
+            className="card card-hover p-5"
           >
-            <blockquote className="border-l-2 border-amber-400 pl-3 text-sm italic text-zinc-600 dark:text-zinc-400">
+            <blockquote className="border-l-[3px] border-red pl-3 font-display text-sm italic text-ink-soft">
               {ann.quote}
             </blockquote>
-            <p className="mt-2 text-sm leading-relaxed">{ann.body}</p>
-            <div className="mt-3 flex items-center gap-3 text-xs text-zinc-500">
-              <Link href={`/songs/${ann.song_id}`} className="font-medium text-amber-600 hover:underline dark:text-amber-400">
+            <p className="mt-2 text-sm leading-relaxed text-ink">{ann.body}</p>
+            <div className="mt-3 flex items-center gap-3 font-mono text-xs text-ink-faint">
+              <Link href={`/songs/${ann.song_id}`} className="font-semibold text-red hover:underline">
+                <i className="fa-solid fa-music mr-1" aria-hidden="true" />
                 {ann.song_id}
               </Link>
               <span>@{ann.author}</span>
-              <span className="ml-auto">{ann.score} vote{Math.abs(ann.score) > 1 ? 's' : ''}</span>
+              <span className="ml-auto">
+                <i className="fa-solid fa-arrow-up text-green mr-1" aria-hidden="true" />
+                {ann.score} vote{Math.abs(ann.score) > 1 ? 's' : ''}
+              </span>
             </div>
           </article>
         ))}
