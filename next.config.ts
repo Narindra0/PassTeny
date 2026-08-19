@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  // Désactive l'auto-hébergement des polices Google Fonts pour
+  // compatibilité avec OpenNext Cloudflare (esbuild ne gère pas les .woff2).
+  optimizeFonts: false,
 };
 
 export default nextConfig;
