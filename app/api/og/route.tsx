@@ -1,5 +1,4 @@
 import { ImageResponse } from 'next/og'
-import { Fraunces, Spline_Sans, Spline_Sans_Mono } from 'next/font/google'
 import { cloudinaryToImageKitUrl, IMAGEKIT_BASE_URL } from '@/lib/imageUtils'
 
 /** Palette lamba déclinée sur fond encre — mêmes tokens que le design system. */
@@ -14,21 +13,32 @@ const COLORS = {
   goldLight: '#d9ab57',
 }
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
-})
-
-const spline = Spline_Sans({
-  subsets: ['latin'],
-  weight: ['400', '600', '700'],
-})
-
-const splineMono = Spline_Sans_Mono({
-  subsets: ['latin'],
-  weight: ['500'],
-})
+/**
+ * Récupère une police Google Fonts en woff2 (pour satori / next/og).
+ * Nécessaire car next/font/google génère des .woff2 que esbuild
+ * ne sait pas bundler sur Cloudflare Pages (OpenNext).
+ */
+async function fetchGoogleFont(
+  family: string,
+  weight: number,
+  style: 'normal' | 'italic' = 'normal',
+): Promise<{ name: string; data: ArrayBuffer }> {
+  const familyParam = family.replace(/ /g, '+')
+  const styleParam = style === 'italic' ? '1' : '0'
+  const url = `https://fonts.googleapis.com/css2?family=${familyParam}:ital,wght@${styleParam},${weight}&display=swap`
+  const cssRes = await fetch(url, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    },
+  })
+  const css = await cssRes.text()
+  const woff2Match = css.match(/url\((https:\/\/[^)]+\.woff2)\)/)
+  if (!woff2Match) throw new Error(`No woff2 found for ${family}`)
+  const fontRes = await fetch(woff2Match[1])
+  const data = await fontRes.arrayBuffer()
+  return { name: family, data }
+}
 
 /** Frise tissée — la signature lamba, déclinée sur fond encre. */
 function LambaBand() {
@@ -104,6 +114,15 @@ export async function GET(request: Request) {
   const shortQuote =
     quote.length > 250 ? `${quote.slice(0, 247).trimEnd()}…` : quote
 
+  // Polices récupérées en runtime (évite next/font/google → .woff2 → esbuild error)
+  const [frauncesNormal, frauncesItalic, splineFont, splineMonoFont] =
+    await Promise.all([
+      fetchGoogleFont('Fraunces', 600, 'normal'),
+      fetchGoogleFont('Fraunces', 600, 'italic'),
+      fetchGoogleFont('Spline Sans', 400),
+      fetchGoogleFont('Spline Sans Mono', 500),
+    ])
+
   return new ImageResponse(
     (
       <div
@@ -114,7 +133,7 @@ export async function GET(request: Request) {
           flexDirection: 'column',
           backgroundColor: COLORS.ink,
           color: COLORS.paper,
-          fontFamily: fraunces.style.fontFamily,
+          fontFamily: 'Fraunces',
         }}
       >
         <LambaBand />
@@ -179,7 +198,7 @@ export async function GET(request: Request) {
                   style={{
                     display: 'flex',
                     marginTop: 8,
-                    fontFamily: spline.style.fontFamily,
+                    fontFamily: 'Spline Sans',
                     fontSize: 24,
                     fontWeight: 400,
                     color: COLORS.paperSoft,
@@ -267,10 +286,10 @@ export async function GET(request: Request) {
                     style={{
                       display: 'flex',
                       marginTop: 14,
-                      fontFamily: spline.style.fontFamily,
-                      fontSize: 26,
-                      fontWeight: 400,
-                      color: COLORS.paperSoft,
+                    fontFamily: 'Spline Sans',
+                    fontSize: 26,
+                    fontWeight: 400,
+                    color: COLORS.paperSoft,
                     }}
                   >
                     {artist}
@@ -299,7 +318,7 @@ export async function GET(request: Request) {
             <div
               style={{
                 display: 'flex',
-                fontFamily: splineMono.style.fontFamily,
+                fontFamily: 'Spline Sans Mono',
                 fontSize: 16,
                 fontWeight: 500,
                 letterSpacing: 3,
@@ -315,6 +334,10 @@ export async function GET(request: Request) {
         <LambaBand />
       </div>
     ),
-    { width: 1200, height: 630 }
+    {
+      width: 1200,
+      height: 630,
+      fonts: [frauncesNormal, frauncesItalic, splineFont, splineMonoFont],
+    }
   )
 }

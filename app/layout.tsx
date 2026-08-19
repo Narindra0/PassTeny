@@ -1,39 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Fraunces, Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import AuthBar from "@/components/AuthBar";
 import SearchModal from "@/components/SearchModal";
 import SearchTrigger from "@/components/SearchTrigger";
 import "./globals.css";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  weight: ["300", "400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
-const grotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  weight: ["500", "600", "700"],
-  display: "swap",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const jbMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jb-mono",
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -63,8 +33,23 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="fr"
-      className={`h-full antialiased ${grotesk.variable} ${inter.variable} ${jbMono.variable} ${fraunces.variable}`}
+      className="h-full antialiased"
     >
+      <head>
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="flex min-h-full flex-col bg-paper">
         {/* ── Header : bande drapeau + nav claire, miroir de la landing ── */}
         <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-sm">
