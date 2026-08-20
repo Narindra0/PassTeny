@@ -7,6 +7,9 @@
     "predev": "node scripts/db-migrate.mjs",
     "build": "next build",
     "prebuild": "node scripts/db-migrate.mjs",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:deploy": "opennextjs-cloudflare deploy",
+    "cf:preview": "opennextjs-cloudflare build && wrangler dev",
     "start": "next start",
     "db:migrate": "node scripts/db-migrate.mjs",
     "lint": "eslint"
