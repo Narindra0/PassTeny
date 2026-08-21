@@ -1,0 +1,8 @@
+# Cloudflare Pages — ce fichier indique où se trouve le build output
+# généré par `opennextjs-cloudflare build`.
+# Docs : https://opennext.js.org/cloudflare
+
+name = "pass-teny"
+pages_build_output_dir = ".open-next"
+compatibility_date = "2026-08-20"
+compatibility_flags = ["nodejs_compat"]
