@@ -6,7 +6,6 @@
     "dev": "next dev",
     "predev": "node scripts/db-migrate.mjs",
     "build": "next build",
-    "prebuild": "node scripts/db-migrate.mjs",
     "cf:build": "opennextjs-cloudflare build",
     "cf:deploy": "opennextjs-cloudflare deploy",
     "cf:preview": "opennextjs-cloudflare build && wrangler dev",
@@ -19,11 +18,14 @@
     "@octokit/rest": "^22.0.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
+    "@vercel/og": "^1.0.1",
     "next": "16.3.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "satori": "^0.33.1"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -31,7 +33,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "@opennextjs/cloudflare": "^1.20.2"
+    "typescript": "^5"
   }
 }

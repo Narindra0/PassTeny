@@ -17,6 +17,24 @@ const CONTENT_DIR = path.join(process.cwd(), 'content')
 const RAW_BASE = (repo: string, branch: string) =>
   `https://raw.githubusercontent.com/${repo}/${branch}`
 
+// ── Cache mémoire (par requête) ─────────────────────────────────────────────
+// Évite de relire tout le catalogue N fois quand listSongs, listAlbums et
+// listArtists sont appelés plusieurs fois dans la même requête server.
+// TTL court : 60s en dev, réinitialisé au démarrage du serveur.
+
+const MEMORY_CACHE_TTL = 60_000 // 60 secondes
+const memoryCache = new Map<string, { data: unknown; expiry: number }>()
+
+function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const now = Date.now()
+  const hit = memoryCache.get(key)
+  if (hit && hit.expiry > now) return Promise.resolve(hit.data as T)
+  return fn().then((data) => {
+    memoryCache.set(key, { data, expiry: now + MEMORY_CACHE_TTL })
+    return data
+  })
+}
+
 // ── Utils ────────────────────────────────────────────────────────────────────
 
 async function readJson<T>(filePath: string): Promise<T | null> {
@@ -69,10 +87,12 @@ function isLocalMode(): boolean {
 }
 
 async function getIndex(): Promise<ContentIndex | null> {
-  if (isLocalMode()) {
-    return readJson<ContentIndex>(path.join(CONTENT_DIR, 'index.json'))
-  }
-  return fetchRawJson<ContentIndex>(config.contentRepo, config.contentBranch, 'index.json')
+  return cached('index', async () => {
+    if (isLocalMode()) {
+      return readJson<ContentIndex>(path.join(CONTENT_DIR, 'index.json'))
+    }
+    return fetchRawJson<ContentIndex>(config.contentRepo, config.contentBranch, 'index.json')
+  })
 }
 
 // ── Lectures des fichiers d'un titre ─────────────────────────────────────────
@@ -114,39 +134,43 @@ async function readSongFiles(
 // ── API publiques ────────────────────────────────────────────────────────────
 
 export async function listArtists(): Promise<ArtistSummary[]> {
-  const index = await getIndex()
-  if (!index) return []
-  const counts = new Map<string, number>()
-  for (const song of index.songs) {
-    counts.set(song.artistSlug, (counts.get(song.artistSlug) ?? 0) + 1)
-  }
-  return index.artists.map((a) => ({
-    slug: a.slug,
-    name: a.name,
-    coverUrl: a.coverUrl,
-    songCount: counts.get(a.slug) ?? 0,
-  }))
+  return cached('listArtists', async () => {
+    const index = await getIndex()
+    if (!index) return []
+    const counts = new Map<string, number>()
+    for (const song of index.songs) {
+      counts.set(song.artistSlug, (counts.get(song.artistSlug) ?? 0) + 1)
+    }
+    return index.artists.map((a) => ({
+      slug: a.slug,
+      name: a.name,
+      coverUrl: a.coverUrl,
+      songCount: counts.get(a.slug) ?? 0,
+    }))
+  })
 }
 
 export async function listSongs(): Promise<SongSummary[]> {
-  const index = await getIndex()
-  if (!index) return []
-  const summaries: SongSummary[] = []
-  for (const song of index.songs) {
-    const { meta, annotations } = await readSongFiles(song.artistSlug, song.slug)
-    summaries.push({
-      slug: song.slug,
-      artistSlug: song.artistSlug,
-      title: meta?.title || song.title,
-      artist: meta?.artist || song.artist,
-      album: meta?.album || song.album || '',
-      coverUrl: meta?.coverUrl || song.coverUrl,
-      releaseDate: meta?.releaseDate,
-      annotationCount: annotations.length,
-      language: meta?.language,
-    })
-  }
-  return summaries
+  return cached('listSongs', async () => {
+    const index = await getIndex()
+    if (!index) return []
+    const summaries: SongSummary[] = []
+    for (const song of index.songs) {
+      const { meta, annotations } = await readSongFiles(song.artistSlug, song.slug)
+      summaries.push({
+        slug: song.slug,
+        artistSlug: song.artistSlug,
+        title: meta?.title || song.title,
+        artist: meta?.artist || song.artist,
+        album: meta?.album || song.album || '',
+        coverUrl: meta?.coverUrl || song.coverUrl,
+        releaseDate: meta?.releaseDate,
+        annotationCount: annotations.length,
+        language: meta?.language,
+      })
+    }
+    return summaries
+  })
 }
 
 export async function getArtist(artistSlug: string): Promise<ArtistSummary | null> {
@@ -222,27 +246,29 @@ export interface Album {
 
 /** Toutes les releases du catalogue, groupées par artiste + album. */
 export async function listAlbums(): Promise<Album[]> {
-  const songs = await listSongs()
-  const groups = new Map<string, SongSummary[]>()
-  for (const song of songs) {
-    const key = `${song.artistSlug}__${song.album}`
-    const list = groups.get(key) ?? []
-    list.push(song)
-    groups.set(key, list)
-  }
-  return [...groups.values()].map((tracks) => {
-    const first = tracks[0]!
-    return {
-      slug: albumSlug(first.artistSlug, first.album),
-      album: first.album,
-      artist: first.artist,
-      artistSlug: first.artistSlug,
-      coverUrl: first.coverUrl,
-      trackCount: tracks.length,
-      annotationCount: tracks.reduce((n, s) => n + s.annotationCount, 0),
-      tracks,
-      type: releaseType(tracks.length),
+  return cached('listAlbums', async () => {
+    const songs = await listSongs()
+    const groups = new Map<string, SongSummary[]>()
+    for (const song of songs) {
+      const key = `${song.artistSlug}__${song.album}`
+      const list = groups.get(key) ?? []
+      list.push(song)
+      groups.set(key, list)
     }
+    return [...groups.values()].map((tracks) => {
+      const first = tracks[0]!
+      return {
+        slug: albumSlug(first.artistSlug, first.album),
+        album: first.album,
+        artist: first.artist,
+        artistSlug: first.artistSlug,
+        coverUrl: first.coverUrl,
+        trackCount: tracks.length,
+        annotationCount: tracks.reduce((n, s) => n + s.annotationCount, 0),
+        tracks,
+        type: releaseType(tracks.length),
+      }
+    })
   })
 }
 

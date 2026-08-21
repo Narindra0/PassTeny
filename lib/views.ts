@@ -107,3 +107,50 @@ export async function countMergedAnnotations(): Promise<number> {
     .eq('status', 'merged')
   return count ?? 0
 }
+
+// ── Votes par titre ────────────────────────────────────────────────────────
+
+/** Top titres par votes reçus sur leurs annotations (score agrégé). */
+export interface SongVoteStats {
+  songId: string
+  totalVotes: number  // somme des votes (±1) sur toutes les annotations du titre
+  annotationCount: number
+}
+
+export async function getTopVotedSongs(limit = 10): Promise<SongVoteStats[]> {
+  const admin = getSupabaseAdmin()
+  if (!admin) return []
+
+  // Récupérer toutes les annotations merged avec leur score de votes
+  const { data: annotations } = await admin
+    .from('annotations')
+    .select('song_id, score')
+    .eq('status', 'merged')
+
+  if (!annotations || annotations.length === 0) return []
+
+  // Agréger par song_id
+  const bySong = new Map<string, { totalVotes: number; count: number }>()
+  for (const a of annotations) {
+    const prev = bySong.get(a.song_id) ?? { totalVotes: 0, count: 0 }
+    bySong.set(a.song_id, {
+      totalVotes: prev.totalVotes + (a.score ?? 0),
+      count: prev.count + 1,
+    })
+  }
+
+  return [...bySong.entries()]
+    .map(([songId, stats]) => ({ songId, totalVotes: stats.totalVotes, annotationCount: stats.count }))
+    .sort((a, b) => b.totalVotes - a.totalVotes)
+    .slice(0, limit)
+}
+
+/** Total de votes émis dans le système. */
+export async function countTotalVotes(): Promise<number> {
+  const admin = getSupabaseAdmin()
+  if (!admin) return 0
+  const { count } = await admin
+    .from('votes')
+    .select('annotation_id', { count: 'exact', head: true })
+  return count ?? 0
+}

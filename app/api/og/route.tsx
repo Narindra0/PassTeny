@@ -6,6 +6,7 @@ const COLORS = {
   ink: '#211b12',
   paper: '#f7f1e4',
   paperSoft: '#d8ceb4',
+  paperFaint: '#a79d88',
   card: '#fffdf7',
   red: '#a63a2b',
   green: '#43633f',
@@ -13,11 +14,6 @@ const COLORS = {
   goldLight: '#d9ab57',
 }
 
-/**
- * Récupère une police Google Fonts en woff2 (pour satori / next/og).
- * Nécessaire car next/font/google génère des .woff2 que esbuild
- * ne sait pas bundler sur Cloudflare Pages (OpenNext).
- */
 async function fetchGoogleFont(
   family: string,
   weight: number,
@@ -28,19 +24,20 @@ async function fetchGoogleFont(
   const url = `https://fonts.googleapis.com/css2?family=${familyParam}:ital,wght@${styleParam},${weight}&display=swap`
   const cssRes = await fetch(url, {
     headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko',
     },
   })
   const css = await cssRes.text()
+  const woffMatch = css.match(/url\((https:\/\/[^)]+\.woff)\)/)
   const woff2Match = css.match(/url\((https:\/\/[^)]+\.woff2)\)/)
-  if (!woff2Match) throw new Error(`No woff2 found for ${family}`)
-  const fontRes = await fetch(woff2Match[1])
+  const fontUrl = woffMatch?.[1] ?? woff2Match?.[1]
+  if (!fontUrl) throw new Error(`No font found for ${family}`)
+  const fontRes = await fetch(fontUrl)
   const data = await fontRes.arrayBuffer()
   return { name: family, data }
 }
 
-/** Frise tissée — la signature lamba, déclinée sur fond encre. */
+/** Frise tissée — la signature lamba. */
 function LambaBand() {
   const segments = [
     { color: COLORS.red, width: 56 },
@@ -51,45 +48,32 @@ function LambaBand() {
   return (
     <div style={{ display: 'flex', width: '100%' }}>
       {segments.map((seg, i) => (
-        <div key={i} style={{ width: seg.width, height: 6, backgroundColor: seg.color }} />
+        <div key={i} style={{ width: seg.width, height: 5, backgroundColor: seg.color }} />
       ))}
     </div>
   )
 }
 
-/** Le losange tissé (2×2 latérite/ivoire/vert/or) — la marque Pass'Teny. */
-function LambaMark({ size = 30, border = 'rgba(247,241,228,0.6)' }: { size?: number; border?: string }) {
+/**
+ * Résout les sauts de ligne du texte en lignes React.
+ * Chaque ligne est un <div> flex séparé (satori exige display:flex).
+ */
+function renderMultilineText(text: string, style: Record<string, unknown>) {
+  const lines = text.split('\n')
   return (
-    <div
-      style={{
-        display: 'flex',
-        width: size,
-        height: size,
-        transform: 'rotate(45deg)',
-        borderRadius: 5,
-        border: `2px solid ${border}`,
-        overflow: 'hidden',
-        flexShrink: 0,
-      }}
-    >
-      <div style={{ display: 'flex', flex: 1, flexDirection: 'column' }}>
-        <div style={{ flex: 1, backgroundColor: COLORS.red }} />
-        <div style={{ flex: 1, backgroundColor: COLORS.green }} />
-      </div>
-      <div style={{ display: 'flex', flex: 1, flexDirection: 'column' }}>
-        <div style={{ flex: 1, backgroundColor: COLORS.paper }} />
-        <div style={{ flex: 1, backgroundColor: COLORS.gold }} />
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', ...style }}>
+      {lines.map((line, i) => (
+        <div key={i} style={{ display: 'flex' }}>
+          {line || '\u00A0'}
+        </div>
+      ))}
     </div>
   )
 }
 
 /**
- * Carte de partage — 1200×630, façon « carte Spotify » aux couleurs Pass'Teny :
- * cover + titre + artiste en tête, passage de paroles centré, marque en pied.
- *
- * Utilisation : /api/og?title=…&artist=…&quote=…&cover=…
- * (cover : URL Cloudinary convertie en ImageKit, ou ImageKit directe)
+ * Carte de partage — 1200×630, style « carte Spotify / Genius » :
+ * cover grande à gauche, titre + artiste, citation au centre, logo Pass'io en pied.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -99,7 +83,6 @@ export async function GET(request: Request) {
   const rawCover = (searchParams.get('cover') ?? '').slice(0, 500)
   const origin = new URL(request.url).origin
 
-  // Cover affichable : ImageKit directe, ou équivalent ImageKit d'une Cloudinary.
   let coverUrl = ''
   if (rawCover) {
     const converted = cloudinaryToImageKitUrl(rawCover)
@@ -107,20 +90,18 @@ export async function GET(request: Request) {
     else if (rawCover.includes(IMAGEKIT_BASE_URL)) coverUrl = rawCover.split('?')[0] || ''
   }
   if (coverUrl) {
-    coverUrl = `${coverUrl}?tr=w-300,q-80,f-auto`
+    coverUrl = `${coverUrl}?tr=w-500,q-85,f-auto`
   }
 
-  // Citation bornée à ~6 lignes : les paroles descendent librement dans la carte.
+  // Borné mais PAS tronqué sur les lignes — les \n sont conservés pour l'affichage multi-ligne.
   const shortQuote =
-    quote.length > 250 ? `${quote.slice(0, 247).trimEnd()}…` : quote
+    quote.length > 280 ? `${quote.slice(0, 277).trimEnd()}…` : quote
 
-  // Polices récupérées en runtime (évite next/font/google → .woff2 → esbuild error)
-  const [frauncesNormal, frauncesItalic, splineFont, splineMonoFont] =
+  const [frauncesNormal, frauncesItalic, splineFont] =
     await Promise.all([
       fetchGoogleFont('Fraunces', 600, 'normal'),
       fetchGoogleFont('Fraunces', 600, 'italic'),
       fetchGoogleFont('Spline Sans', 400),
-      fetchGoogleFont('Spline Sans Mono', 500),
     ])
 
   return new ImageResponse(
@@ -138,57 +119,76 @@ export async function GET(request: Request) {
       >
         <LambaBand />
 
-        {/* Corps */}
+        {/* Corps principal — layout horizontal */}
         <div
           style={{
             display: 'flex',
             flex: 1,
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '52px 72px 44px',
+            padding: '48px 60px 40px',
+            gap: 48,
           }}
         >
-          {/* En-tête : cover + titre + artiste */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+          {/* Colonne gauche — cover + métadonnées, centré verticalement */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 320,
+              flexShrink: 0,
+            }}
+          >
             {coverUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element -- satori (next/og) exige <img> brut ; alt vide car la cover est redondante avec titre/artiste */
               <img
                 src={coverUrl}
-                width={112}
-                height={112}
+                width={280}
+                height={280}
                 alt=""
                 style={{
-                  borderRadius: 20,
+                  borderRadius: 24,
                   objectFit: 'cover',
-                  border: '3px solid rgba(247,241,228,0.18)',
-                  flexShrink: 0,
+                  border: `4px solid ${COLORS.paper}18`,
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
                 }}
               />
             ) : (
               <div
                 style={{
                   display: 'flex',
-                  width: 112,
-                  height: 112,
+                  width: 280,
+                  height: 280,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: COLORS.card,
-                  borderRadius: 20,
-                  flexShrink: 0,
+                  borderRadius: 24,
+                  border: `4px solid ${COLORS.paper}18`,
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
                 }}
               >
-                <LambaMark size={56} border={COLORS.ink} />
+                <div style={{ fontSize: 48, color: COLORS.gold }}>♪</div>
               </div>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+
+            {/* Titre + artiste sous la cover */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                marginTop: 24,
+                width: '100%',
+              }}
+            >
               <div
                 style={{
                   display: 'flex',
-                  fontSize: 46,
+                  fontSize: 26,
                   fontWeight: 600,
-                  lineHeight: 1.1,
+                  lineHeight: 1.2,
                   color: COLORS.paper,
-                  maxWidth: 820,
+                  textAlign: 'center',
+                  maxWidth: 280,
                 }}
               >
                 {title}
@@ -197,11 +197,12 @@ export async function GET(request: Request) {
                 <div
                   style={{
                     display: 'flex',
-                    marginTop: 8,
+                    marginTop: 6,
                     fontFamily: 'Spline Sans',
-                    fontSize: 24,
+                    fontSize: 18,
                     fontWeight: 400,
                     color: COLORS.paperSoft,
+                    textAlign: 'center',
                   }}
                 >
                   {artist}
@@ -210,72 +211,74 @@ export async function GET(request: Request) {
             </div>
           </div>
 
-          {/* Passage centré — les paroles descendent librement, « » en cadres détachés */}
+          {/* Colonne droite — citation multi-ligne + marque Pass'io */}
           <div
             style={{
               display: 'flex',
               flex: 1,
-              alignItems: 'center',
+              flexDirection: 'column',
               justifyContent: 'center',
+              minWidth: 0,
             }}
           >
             {shortQuote ? (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'stretch',
-                  gap: 14,
-                  width: 920,
-                }}
-              >
-                <span
+              <>
+                {/* Guillemets décoratifs */}
+                <div
                   style={{
+                    display: 'flex',
                     color: COLORS.goldLight,
-                    fontSize: 44,
-                    lineHeight: 1,
-                    paddingTop: 4,
+                    fontSize: 72,
+                    lineHeight: 0.8,
+                    marginBottom: 8,
+                    opacity: 0.6,
                   }}
                 >
                   «
-                </span>
+                </div>
+
+                {/* Citation — multi-ligne avec préservation des \n */}
+                {renderMultilineText(shortQuote, {
+                  fontSize: 34,
+                  fontStyle: 'italic',
+                  fontWeight: 500,
+                  lineHeight: 1.5,
+                  color: COLORS.paper,
+                  paddingLeft: 28,
+                })}
+
+                {/* Guillemets fermant */}
                 <div
                   style={{
                     display: 'flex',
-                    flex: 1,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 40,
-                    fontStyle: 'italic',
-                    fontWeight: 500,
-                    lineHeight: 1.32,
-                    textAlign: 'center',
-                    color: COLORS.paper,
-                  }}
-                >
-                  {shortQuote}
-                </div>
-                <span
-                  style={{
                     color: COLORS.goldLight,
-                    fontSize: 44,
-                    lineHeight: 1,
+                    fontSize: 72,
+                    lineHeight: 0.8,
+                    marginTop: 12,
                     alignSelf: 'flex-end',
-                    paddingBottom: 4,
+                    opacity: 0.6,
                   }}
                 >
                   »
-                </span>
-              </div>
+                </div>
+              </>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flex: 1,
+                }}
+              >
                 <div
                   style={{
                     display: 'flex',
-                    fontSize: 58,
+                    fontSize: 52,
                     fontWeight: 600,
                     lineHeight: 1.15,
                     color: COLORS.paper,
-                    maxWidth: 900,
                     textAlign: 'center',
                   }}
                 >
@@ -286,10 +289,10 @@ export async function GET(request: Request) {
                     style={{
                       display: 'flex',
                       marginTop: 14,
-                    fontFamily: 'Spline Sans',
-                    fontSize: 26,
-                    fontWeight: 400,
-                    color: COLORS.paperSoft,
+                      fontFamily: 'Spline Sans',
+                      fontSize: 26,
+                      fontWeight: 400,
+                      color: COLORS.paperSoft,
                     }}
                   >
                     {artist}
@@ -297,36 +300,36 @@ export async function GET(request: Request) {
                 )}
               </div>
             )}
-          </div>
 
-          {/* Pied : logo Pass'io + tagline */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- logo Pass'io blanc (asset local), alt = nom de la marque */}
-            <img
-              src={`${origin}/passio-logo-white.png`}
-              width={152}
-              height={56}
-              alt="Pass'io"
-              style={{ objectFit: 'contain', flexShrink: 0 }}
-            />
+            {/* Pied — Logo Pass'io + tagline Pass'Teny */}
             <div
               style={{
                 display: 'flex',
-                fontFamily: 'Spline Sans Mono',
-                fontSize: 16,
-                fontWeight: 500,
-                letterSpacing: 3,
-                textTransform: 'uppercase',
-                color: COLORS.gold,
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: 32,
+                paddingTop: 20,
+                borderTop: `1px solid ${COLORS.paper}15`,
               }}
             >
-              Ny hevitry ny teny
+              {/* eslint-disable-next-line @next/next/no-img-element -- logo Pass'io blanc, asset local */}
+              <img
+                src={`${origin}/passio-logo-white.png`}
+                width={140}
+                height={50}
+                alt="Pass'io"
+                style={{ objectFit: 'contain', flexShrink: 0 }}
+              />
+              <div
+                style={{
+                  display: 'flex',
+                  fontFamily: 'Spline Sans',
+                  fontSize: 13,
+                  color: COLORS.paperFaint,
+                }}
+              >
+                Ny hevitry ny teny
+              </div>
             </div>
           </div>
         </div>
@@ -337,7 +340,7 @@ export async function GET(request: Request) {
     {
       width: 1200,
       height: 630,
-      fonts: [frauncesNormal, frauncesItalic, splineFont, splineMonoFont],
+      fonts: [frauncesNormal, frauncesItalic, splineFont],
     }
   )
 }

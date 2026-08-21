@@ -1,12 +1,12 @@
 'use client'
 
 /**
- * Panneau « visiteur » après sélection d'un passage : à la place du formulaire
- * d'annotation, on propose une visu du passage (carte OG générée avec la
- * citation) + la suggestion de se connecter pour annoter.
+ * Panneau visiteur après sélection d'un passage :
+ * Visu du passage (carte OG) + CTA pour se connecter.
+ * Pas de punchline — il faut être connecté.
  */
 import { useState } from 'react'
-import Link from 'next/link'
+import { openSignIn } from '@/components/SignInModal'
 
 interface SelectionVisualProps {
   title: string
@@ -35,12 +35,12 @@ export default function SelectionVisual({ title, artist, quote, cover, onClose }
   }
 
   return (
-    <div className="card fixed inset-x-0 bottom-0 z-40 m-4 rounded-2xl p-5 shadow-card sm:inset-x-auto sm:right-6 sm:bottom-6 sm:m-0 sm:w-[30rem] sm:rounded-lg">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <h3 className="font-display text-sm font-semibold text-ink">Votre visuel du passage</h3>
-          <blockquote className="mt-1 max-h-16 overflow-hidden border-l-[3px] border-mustard pl-2.5 text-xs italic leading-relaxed text-ink-soft">
-            {quote}
+    <div className="card fixed inset-x-0 bottom-0 z-40 m-4 overflow-hidden rounded-2xl shadow-card sm:inset-x-auto sm:right-6 sm:bottom-6 sm:m-0 sm:w-[30rem] sm:rounded-lg">
+      {/* Header + citation */}
+      <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
+        <div className="min-w-0">
+          <blockquote className="max-h-12 overflow-hidden border-l-[3px] border-mustard pl-2.5 text-xs italic leading-relaxed text-ink-soft">
+            « {quote} »
           </blockquote>
         </div>
         <button
@@ -53,37 +53,40 @@ export default function SelectionVisual({ title, artist, quote, cover, onClose }
         </button>
       </div>
 
-      {/* La visu — carte OG générée avec le passage sélectionné (src dynamique, comme CoverImage) */}
-      {/* eslint-disable-next-line @next/next/no-img-element -- URL dynamique /api/og, pas optimisable par next/image */}
-      <img
-        src={ogUrl}
-        alt={`Carte visuelle du passage : ${quote}`}
-        className="mt-1 w-full rounded-lg border border-line-strong object-cover shadow-soft"
-      />
+      {/* Carte OG */}
+      <div className="px-4 pb-4">
+        {/* eslint-disable-next-line @next/next/no-img-element -- URL dynamique /api/og */}
+        <img
+          src={ogUrl}
+          alt={`Carte visuelle du passage : ${quote}`}
+          className="w-full rounded-lg border border-line-strong object-cover shadow-soft"
+        />
 
-      <p className="mt-3 text-xs leading-relaxed text-ink-soft">
-        Sélectionner, c&apos;est déjà composer. Connectez-vous pour ajouter l&apos;explication —
-        en attendant, générez votre carte du passage.
-      </p>
+        <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+          Sélectionner, c&apos;est déjà composer. Connectez-vous pour annoter
+          ou proposer cette ligne comme punchline.
+        </p>
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Link
-          href="/auth/signin"
-          className="btn btn-primary btn-sm flex-1"
-          style={{ minWidth: '10rem' }}
-        >
-          <i className="fa-solid fa-user" aria-hidden="true" /> Se connecter pour annoter
-        </Link>
-        <button type="button" onClick={copyCard} className="btn btn-secondary btn-sm">
-          <i
-            className={`${copied ? 'fa-solid fa-check text-green' : 'fa-regular fa-image text-red'} text-sm`}
-            aria-hidden="true"
-          />
-          {copied ? 'Carte copiée' : 'Copier la carte'}
-        </button>
-        <a href={ogUrl} download="visu-passteny.png" className="btn btn-secondary btn-sm">
-          <i className="fa-solid fa-download text-sm" aria-hidden="true" /> Télécharger
-        </a>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={openSignIn}
+            className="btn btn-primary btn-sm flex-1"
+            style={{ minWidth: '10rem' }}
+          >
+            <i className="fa-solid fa-user" aria-hidden="true" /> Se connecter
+          </button>
+          <button type="button" onClick={copyCard} className="btn btn-secondary btn-sm">
+            <i
+              className={`${copied ? 'fa-solid fa-check text-green' : 'fa-regular fa-image text-red'} text-sm`}
+              aria-hidden="true"
+            />
+            {copied ? 'Copiée' : 'Copier'}
+          </button>
+          <a href={ogUrl} download="visu-passteny.png" className="btn btn-secondary btn-sm">
+            <i className="fa-solid fa-download text-sm" aria-hidden="true" />
+          </a>
+        </div>
       </div>
     </div>
   )

@@ -49,15 +49,15 @@ export default function AccountMenu({ username, email, role }: AccountMenuProps)
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Compte de ${username}`}
-        className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-line-strong bg-card py-1.5 pl-1.5 pr-3 text-ink transition-all hover:-translate-y-0.5 hover:border-red hover:bg-red hover:text-white"
+        className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-line-strong bg-card py-1 pl-1 pr-2.5 text-ink transition-all hover:-translate-y-0.5 hover:border-red hover:bg-red hover:text-white"
       >
         <span
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-red font-mono text-xs font-bold text-white"
+          className="flex h-6 w-6 items-center justify-center rounded-full bg-red font-mono text-[10px] font-bold text-white"
           aria-hidden="true"
         >
           {username.slice(0, 1).toUpperCase()}
         </span>
-        <span className="hidden max-w-[120px] truncate font-mono text-[11px] font-semibold uppercase tracking-wider sm:block">
+        <span className="hidden max-w-[100px] truncate font-mono text-[10px] font-semibold uppercase tracking-wider sm:block">
           {username}
         </span>
         <i

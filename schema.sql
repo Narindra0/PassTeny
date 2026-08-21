@@ -178,6 +178,91 @@ create table if not exists public.glossary_terms (
 
 create index if not exists glossary_term_idx on public.glossary_terms (lower(term));
 
+-- ── Punchlines (paroles marquantes proposées par la communauté) ─────────────
+create table if not exists public.punchlines (
+  id          uuid primary key default gen_random_uuid(),
+  song_id     text not null references public.songs (id) on delete cascade,
+  quote       text not null check (char_length(quote) >= 4),
+  context     text,                -- annotation / explication de la punchline
+  author_id   uuid not null references public.profiles (id) on delete cascade,
+  score       integer not null default 0,
+  status      text not null default 'pending',  -- pending / approved / rejected
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists punchlines_song_idx on public.punchlines (song_id);
+create index if not exists punchlines_author_idx on public.punchlines (author_id);
+create index if not exists punchlines_status_idx on public.punchlines (status);
+create index if not exists punchlines_score_idx on public.punchlines (score desc);
+
+-- Votes punchlines (un vote par profil par punchline)
+create table if not exists public.punchline_votes (
+  punchline_id uuid not null references public.punchlines (id) on delete cascade,
+  voter_id     uuid not null references public.profiles (id) on delete cascade,
+  value        smallint not null check (value in (-1, 1)),
+  created_at   timestamptz not null default now(),
+  primary key (punchline_id, voter_id)
+);
+
+-- Trigger : recalc score punchline
+create or replace function public.recalc_punchline_score()
+returns trigger language plpgsql as $$
+declare
+  v_punchline_id uuid;
+begin
+  v_punchline_id := coalesce(new.punchline_id, old.punchline_id);
+  update public.punchlines
+     set score = (select coalesce(sum(value), 0) from public.punchline_votes where punchline_id = v_punchline_id)
+   where id = v_punchline_id;
+  return coalesce(new, old);
+end $$;
+
+drop trigger if exists punchline_votes_score on public.punchline_votes;
+create trigger punchline_votes_score after insert or update or delete on public.punchline_votes
+  for each row execute function public.recalc_punchline_score();
+
+-- ── Articles communautaires (magazine) ──────────────────────────────────────
+create table if not exists public.community_articles (
+  id          uuid primary key default gen_random_uuid(),
+  author_id   uuid not null references public.profiles (id) on delete cascade,
+  title       text not null check (char_length(title) between 5 and 200),
+  subtitle    text,
+  content     text not null check (char_length(content) >= 20),
+  cover_url   text,              -- image de couverture (URL)
+  category    text not null default 'journal' check (category in ('journal', 'analyse', 'portrait', 'réflexion', 'guide')),
+  tags        text[] not null default '{}',
+  status      text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  read_time   text,              -- ex. '5 min'
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create index if not exists community_articles_author_idx on public.community_articles (author_id);
+create index if not exists community_articles_status_idx on public.community_articles (status);
+create index if not exists community_articles_created_idx on public.community_articles (created_at desc);
+
+-- RLS articles communautaires
+alter table public.community_articles enable row level security;
+
+-- Lecture : les articles approved sont publics, les pending sont visibles par l'auteur
+create policy "community_articles_read" on public.community_articles
+  for select using (
+    status = 'approved'
+    or author_id = auth.uid()
+    or exists (select 1 from public.profiles where id = auth.uid() and role in ('moderator', 'trusted'))
+  );
+
+-- Écriture : tout connecté peut insérer ses propres articles
+create policy "community_articles_insert" on public.community_articles
+  for insert with check (author_id = auth.uid());
+
+-- Modification : l'auteur ou un modérateur peut modifier
+create policy "community_articles_update" on public.community_articles
+  for update using (
+    author_id = auth.uid()
+    or exists (select 1 from public.profiles where id = auth.uid() and role in ('moderator', 'trusted'))
+  );
+
 -- ── Réglages (seuils de montée en grade, modération) ────────────────────────
 create table if not exists public.settings (
   key        text primary key,
@@ -261,6 +346,8 @@ alter table public.glossary_terms      enable row level security;
 alter table public.settings            enable row level security;
 alter table public.lyric_suggestions   enable row level security;
 alter table public.song_views         enable row level security;
+alter table public.punchlines          enable row level security;
+alter table public.punchline_votes     enable row level security;
 
 -- NB : chaque `create policy` est précédé d'un `drop policy if exists` pour
 -- que schema.sql soit rejouable (migrations automatiques, `npm run db:migrate`).
@@ -345,3 +432,26 @@ create policy settings_write on public.settings for update
     select 1 from public.profiles p
     where p.id = auth.uid() and p.role = 'moderator'
   ));
+
+-- Punchlines : lecture publique, soumission par tout connecté, modération.
+drop policy if exists punchlines_read on public.punchlines;
+drop policy if exists punchlines_insert on public.punchlines;
+drop policy if exists punchlines_moderate on public.punchlines;
+create policy punchlines_read on public.punchlines for select using (true);
+create policy punchlines_insert on public.punchlines for insert
+  with check (auth.uid() = author_id);
+create policy punchlines_moderate on public.punchlines for update
+  using (exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role in ('trusted', 'moderator')
+  ));
+
+-- Votes punchlines : lecture publique, un vote par profil.
+drop policy if exists punchline_votes_read on public.punchline_votes;
+drop policy if exists punchline_votes_insert on public.punchline_votes;
+drop policy if exists punchline_votes_delete on public.punchline_votes;
+create policy punchline_votes_read on public.punchline_votes for select using (true);
+create policy punchline_votes_insert on public.punchline_votes for insert
+  with check (auth.uid() = voter_id);
+create policy punchline_votes_delete on public.punchline_votes for delete
+  using (auth.uid() = voter_id);

@@ -224,14 +224,18 @@ export default async function SongPage({ params }: SongPageProps) {
       <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
         <p className="mb-6 border-b border-line pb-4 text-sm text-ink-soft">
           <i className="fa-solid fa-highlighter mr-1.5 text-mustard-dark" aria-hidden="true" />
-          Sélectionnez un passage pour l’annoter — cliquez sur un passage surligné pour lire son
+          Sélectionnez un passage pour l’annoter ou le proposer comme punchline. Cliquez sur un passage surligné pour lire son
           explication.
         </p>
 
-        <SongContent song={song} canAnnotate={canAnnotate} />
+        <div id="paroles" className="scroll-mt-28">
+          <SongContent song={song} canAnnotate={canAnnotate} />
+        </div>
 
         {/* Tracklist de l'album — navigation précédent / suivant */}
-        <AlbumTracklist song={song} />
+        <div id="tracklist" className="scroll-mt-28">
+          <AlbumTracklist song={song} />
+        </div>
 
         {song.meta.source?.platform === "passio" && (
           <p className="mt-12 border-t-2 border-ink pt-4 font-mono text-[0.65rem] uppercase tracking-wider text-ink-faint">
@@ -240,6 +244,8 @@ export default async function SongPage({ params }: SongPageProps) {
           </p>
         )}
       </div>
+
+
     </div>
   );
 }

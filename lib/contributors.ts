@@ -29,7 +29,23 @@ export interface PublishedSuggestion {
   songSlug: string
   trackTitle: string
   artistName: string
+  albumTitle: string | null
+  coverUrl: string | null
+  lyricsPreview: string
+  status: string
   createdAt: string
+}
+
+export interface ActivityItem {
+  id: string
+  type: 'annotation' | 'vote_received' | 'suggestion' | 'badge_earned'
+  title: string
+  context?: string
+  songSlug?: string
+  songTitle?: string
+  artistName?: string
+  score?: number
+  timestamp: string
 }
 
 export interface ContributorPageData {
@@ -43,6 +59,7 @@ export interface ContributorPageData {
   }
   annotations: PublishedAnnotation[]
   suggestions: PublishedSuggestion[]
+  activity: ActivityItem[]
 }
 
 const PROFILE_COLS =
@@ -78,14 +95,40 @@ export async function getContributorByUsername(username: string): Promise<Contri
       : { data: [] }
   const songById = new Map((songs ?? []).map((s) => [s.id, s]))
 
-  // Suggestions de lyrics publiées.
+  // Suggestions de lyrics (tous statuts pour voir l'héritage complet).
   const { data: suggestions } = await admin
     .from('lyric_suggestions')
-    .select('id, song_slug, track_title, artist_name, created_at')
+    .select('id, song_slug, track_title, artist_name, album_title, cover_url, lyrics, status, created_at')
     .eq('author_id', profile.id)
-    .eq('status', 'merged')
     .order('created_at', { ascending: false })
-    .limit(20)
+    .limit(30)
+
+  // ── Activité récente : fusion annotations + suggestions + votes, triés par date ──
+  const activity: ActivityItem[] = [
+    ...(annotations ?? []).slice(0, 15).map((a) => {
+      const song = songById.get(a.song_id)
+      return {
+        id: `ann-${a.id}`,
+        type: 'annotation' as const,
+        title: song?.title ?? a.song_id,
+        context: a.quote,
+        songSlug: a.song_id,
+        songTitle: song?.title,
+        artistName: song?.artist_name,
+        score: a.score,
+        timestamp: a.created_at,
+      }
+    }),
+    ...(suggestions ?? []).slice(0, 10).map((s) => ({
+      id: `sug-${s.id}`,
+      type: 'suggestion' as const,
+      title: s.track_title,
+      songSlug: s.song_slug,
+      songTitle: s.track_title,
+      artistName: s.artist_name,
+      timestamp: s.created_at,
+    })),
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 20)
 
   return {
     profile: profile as Profile & { created_at: string },
@@ -94,7 +137,8 @@ export async function getContributorByUsername(username: string): Promise<Contri
       votesReceived: stats.votesReceived,
       votesCast: stats.votesCast,
       accountAgeDays: stats.accountAgeDays,
-      lyricSuggestionsMerged: suggestions?.length ?? 0,
+      lyricSuggestionsMerged: suggestions?.filter((s) => s.status === 'merged').length ?? 0,
+      lyricSuggestionsPending: suggestions?.filter((s) => s.status === 'pending').length ?? 0,
     },
     annotations: (annotations ?? []).map((a) => {
       const song = songById.get(a.song_id)
@@ -116,7 +160,12 @@ export async function getContributorByUsername(username: string): Promise<Contri
       songSlug: s.song_slug,
       trackTitle: s.track_title,
       artistName: s.artist_name,
+      albumTitle: s.album_title ?? null,
+      coverUrl: s.cover_url ?? null,
+      lyricsPreview: (s.lyrics ?? '').split('\n').filter((l: string) => l.trim()).slice(0, 3).join(' / '),
+      status: s.status,
       createdAt: s.created_at,
     })),
+    activity,
   }
 }

@@ -4,7 +4,7 @@
  * Soumissions en attente pour un titre + vote (contributeurs de confiance+).
  */
 import { useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { openSignIn } from '@/components/SignInModal'
 
 interface PendingItem {
   id: string
@@ -39,7 +39,6 @@ const STATUS_ICON: Record<string, string> = {
 }
 
 export default function PendingAnnotations({ songSlug, refreshKey }: { songSlug: string; refreshKey: number }) {
-  const router = useRouter()
   const [data, setData] = useState<ApiResponse | null>(null)
   const [voting, setVoting] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -81,7 +80,7 @@ export default function PendingAnnotations({ songSlug, refreshKey }: { songSlug:
       body: JSON.stringify({ value }),
     })
     if (res.status === 401) {
-      router.push('/auth/signin')
+      openSignIn()
       return
     }
     if (!res.ok) {

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
 import AuthBar from "@/components/AuthBar";
 import SearchModal from "@/components/SearchModal";
+import SignInModal from "@/components/SignInModal";
 import SearchTrigger from "@/components/SearchTrigger";
 import "./globals.css";
 
@@ -21,13 +23,6 @@ export const metadata: Metadata = {
     description: "Comprendre chaque parole de la musique malgache.",
   },
 };
-
-/** Navigation du header : la page Chart est dédiée, le reste mène aux ancres de la landing. */
-const NAV_LINKS = [
-  { href: "/#eco", label: "Écosystème" },
-  { href: "/chart", label: "Chart" },
-  { href: "/#artistes", label: "Artistes" },
-];
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -51,53 +46,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="flex min-h-full flex-col bg-paper">
-        {/* ── Header : bande drapeau + nav claire, miroir de la landing ── */}
-        <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-sm">
-          <div className="flagbar" aria-hidden="true">
-            <span className="bg-red" />
-            <span className="bg-green" />
-            <span className="bg-mustard" />
-            <span className="bg-ink" />
-          </div>
-          <div className="relative mx-auto flex h-[68px] w-full max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
-            {/* Marque */}
-            <Link
-              href="/"
-              className="group inline-flex shrink-0 items-center gap-2.5"
-            >
-              <span className="lamba-mark transition-transform duration-300 group-hover:rotate-[135deg]" aria-hidden="true" />
-              <span className="font-grotesk text-[1.25rem] font-bold tracking-tight text-ink transition-colors group-hover:text-red sm:text-[1.3rem]">
-                Pass<span className="text-red">&apos;</span>Teny
-              </span>
-            </Link>
-
-            {/* Ancres vers les sections de la landing */}
-            <nav className="hidden items-center gap-7 lg:flex">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-ink-soft transition-colors hover:text-ink"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-
-            {/* Recherche en pill (masquée sur mobile — bouton loupe absent, la modal reste accessible depuis la landing) */}
-            <SearchTrigger
-              label="Rechercher un titre, un artiste, une parole"
-              className="hidden max-w-xs flex-1 items-center gap-2.5 rounded-full border-[1.5px] border-line-strong bg-card px-4 py-2.5 text-left text-[0.82rem] text-ink-faint transition-colors hover:border-ink md:flex"
-            >
-              <i className="fa-solid fa-magnifying-glass text-xs" aria-hidden="true" />
-              <span className="truncate">Rechercher un titre, un artiste, une parole…</span>
-            </SearchTrigger>
-
-            <div className="flex shrink-0 items-center justify-end">
-              <AuthBar />
-            </div>
-          </div>
-        </header>
+        {/* ── Header adaptatif : nav contextuelle par page ── */}
+        <Navbar authBar={<AuthBar />} />
 
         <main className="flex flex-1 flex-col">{children}</main>
 
@@ -159,6 +109,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
         {/* Recherche en modal (remplace la page /search) */}
         <SearchModal />
+        {/* Connexion en modal */}
+        <SignInModal />
       </body>
     </html>
   );

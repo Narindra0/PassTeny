@@ -14,12 +14,12 @@ export const config = {
 
   /**
    * Source du contenu.
-   * - Dev (par défaut) : dossier local `content/` (miroir du repo content).
-   * - Prod : repo GitHub public via `raw.githubusercontent.com` + API GitHub.
+   * - Par défaut : repo GitHub public via `raw.githubusercontent.com` + API GitHub.
+   * - Si CONTENT_LOCAL=true : dossier local `content/` (miroir du repo content).
    */
   contentRepo: process.env.CONTENT_REPO || 'Narindra0/pass-teny-content',
   contentBranch: process.env.CONTENT_BRANCH || 'main',
-  useLocalContent: process.env.CONTENT_LOCAL === 'true' || process.env.NODE_ENV !== 'production',
+  useLocalContent: process.env.CONTENT_LOCAL === 'true',
 
   supabase: {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',

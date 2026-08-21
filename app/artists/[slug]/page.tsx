@@ -114,7 +114,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
 
       {/* ══ Le top de l'artiste ══ */}
       <Reveal>
-        <section className="mb-16">
+        <section id="top" className="mb-16 scroll-mt-28">
           <div className="mb-7 flex items-end justify-between">
             <div>
               <span className="eyebrow">
@@ -179,7 +179,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
 
       {/* ══ Releases — albums / EP / singles avec tracklists ══ */}
       <Reveal>
-        <section id="releases">
+        <section id="releases" className="scroll-mt-28">
           <div className="mb-7 flex items-end justify-between">
             <div>
               <span className="eyebrow">

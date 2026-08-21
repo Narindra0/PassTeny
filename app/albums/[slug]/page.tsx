@@ -125,7 +125,7 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
 
       {/* ══ Tracklist ══ */}
       <Reveal>
-        <section>
+        <section id="tracklist" className="scroll-mt-28">
           <div className="mb-7">
             <span className="eyebrow">
               <i className="fa-solid fa-list-ol" aria-hidden="true" /> La tracklist
@@ -179,7 +179,7 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
       {/* ══ Autres releases de l'artiste ══ */}
       {related.length > 0 && (
         <Reveal>
-          <section className="mt-16">
+          <section id="discographie" className="mt-16 scroll-mt-28">
             <div className="mb-7">
               <span className="eyebrow">
                 <i className="fa-solid fa-compact-disc" aria-hidden="true" /> La discographie
