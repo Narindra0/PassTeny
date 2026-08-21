@@ -1,5 +1,5 @@
 /**
- * Proxy Pass'Teny — refresh de la session Supabase sur chaque requête
+ * Middleware Pass'Teny — refresh de la session Supabase sur chaque requête
  * (pattern officiel @supabase/ssr). Sans cela, les sessions expirent après
  * 1h sans renouvellement.
  */
@@ -9,7 +9,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request })
 
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return response
