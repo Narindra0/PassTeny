@@ -61,8 +61,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   Pass<span className="text-red">&apos;</span>Teny
                 </p>
                 <p className="mt-3 max-w-xs text-[13px] leading-relaxed text-paper/50">
-                  Plateforme communautaire d&apos;annotation des lyrics malgaches —
-                  proverbes, métaphores et références culturelles expliqués par la communauté.
+                  Comprendre la musique malgache, parole pour parole.
+                  Annotations, glossaire et analyses rédigés par la communauté.
                 </p>
               </div>
               <div>
