@@ -11,7 +11,7 @@
  */
 import { useCallback, useRef, useState } from 'react'
 import { openSignIn } from '@/components/SignInModal'
-import { CATEGORY_LABELS, type ArticleCategory } from '@/lib/articles'
+import { CATEGORY_LABELS, type ArticleCategory } from '@/lib/articleShared'
 
 interface ArticleEditorProps {
   isLoggedIn: boolean
