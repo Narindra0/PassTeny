@@ -5,6 +5,7 @@
  * Les articles passent par un statut pending → approved (modération).
  */
 import { getSupabaseServer, getSupabaseAdmin } from '@/lib/supabase/server'
+import type { Database } from '@/lib/supabase/database.types'
 import type { SessionUser } from '@/lib/auth'
 import type { ArticleCategory, CommunityArticle } from '@/lib/articleShared'
 import { estimateReadTime } from '@/lib/articleShared'
@@ -174,7 +175,7 @@ export async function updateArticle(
   const admin = getSupabaseAdmin()
   if (!admin) return { ok: false, error: 'Supabase non configuré' }
 
-  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  const updates: Database['public']['Tables']['community_articles']['Update'] = { updated_at: new Date().toISOString() }
   if (data.title !== undefined) updates.title = data.title.trim()
   if (data.subtitle !== undefined) updates.subtitle = data.subtitle?.trim() || null
   if (data.content !== undefined) {

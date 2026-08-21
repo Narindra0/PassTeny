@@ -56,6 +56,7 @@ export interface ContributorPageData {
     votesCast: number
     accountAgeDays: number
     lyricSuggestionsMerged: number
+    lyricSuggestionsPending: number
   }
   annotations: PublishedAnnotation[]
   suggestions: PublishedSuggestion[]

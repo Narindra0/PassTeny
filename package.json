@@ -11,7 +11,8 @@
     "cf:preview": "opennextjs-cloudflare build && wrangler dev",
     "start": "next start",
     "db:migrate": "node scripts/db-migrate.mjs",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:types": "node scripts/generate-db-types.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.3.1",
@@ -32,6 +33,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "supabase": "^2.115.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
