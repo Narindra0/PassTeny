@@ -1,0 +1,8 @@
+# Cloudflare Pages — indique le répertoire de sortie du build OpenNext.
+# Docs : https://opennext.js.org/cloudflare
+# ⚠️ Vérifie aussi que le dashboard Pages a "Build output directory" = ".open-next"
+
+name = "pass-teny"
+pages_build_output_dir = ".open-next"
+compatibility_date = "2026-08-20"
+compatibility_flags = ["nodejs_compat"]
