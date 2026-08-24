@@ -55,12 +55,23 @@ async function readText(filePath: string): Promise<string | null> {
 
 async function fetchRaw(repo: string, branch: string, filePath: string): Promise<string | null> {
   try {
+    const headers: Record<string, string> = {}
+    if (config.githubToken) {
+      headers['Authorization'] = `Bearer ${config.githubToken}`
+    }
     const res = await fetch(`${RAW_BASE(repo, branch)}/${filePath}`, {
+      headers,
+      // Sur Cloudflare Workers, next.revalidate est ignoré.
+      // On laisse le header pour compatibilité locale/Vercel.
       next: { revalidate: 300 },
     })
-    if (!res.ok) return null
+    if (!res.ok) {
+      console.error(`[content] fetchRaw ${res.status}: ${filePath}`)
+      return null
+    }
     return await res.text()
-  } catch {
+  } catch (err) {
+    console.error('[content] fetchRaw error:', filePath, err)
     return null
   }
 }

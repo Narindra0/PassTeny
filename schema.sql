@@ -92,6 +92,18 @@ as $$
   do update set count = public.song_views.count + 1;
 $$;
 
+-- Agrégat vues par titre (une seule requête SQL au lieu de fetch + reduce en JS).
+create or replace function public.get_song_views_total()
+returns table(song_id text, total_views bigint)
+language sql
+stable
+parallel safe
+as $$
+  select song_id, sum(count) as total_views
+    from public.song_views
+   group by song_id;
+$$;
+
 -- ── Annotations ──────────────────────────────────────────────────────────────
 create table if not exists public.annotations (
   id            uuid primary key default gen_random_uuid(),
