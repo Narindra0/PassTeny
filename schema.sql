@@ -244,8 +244,12 @@ create index if not exists community_articles_created_idx on public.community_ar
 -- RLS articles communautaires
 alter table public.community_articles enable row level security;
 
+drop policy if exists community_articles_read   on public.community_articles;
+drop policy if exists community_articles_insert on public.community_articles;
+drop policy if exists community_articles_update on public.community_articles;
+
 -- Lecture : les articles approved sont publics, les pending sont visibles par l'auteur
-create policy "community_articles_read" on public.community_articles
+create policy community_articles_read on public.community_articles
   for select using (
     status = 'approved'
     or author_id = auth.uid()
@@ -253,11 +257,11 @@ create policy "community_articles_read" on public.community_articles
   );
 
 -- Écriture : tout connecté peut insérer ses propres articles
-create policy "community_articles_insert" on public.community_articles
+create policy community_articles_insert on public.community_articles
   for insert with check (author_id = auth.uid());
 
 -- Modification : l'auteur ou un modérateur peut modifier
-create policy "community_articles_update" on public.community_articles
+create policy community_articles_update on public.community_articles
   for update using (
     author_id = auth.uid()
     or exists (select 1 from public.profiles where id = auth.uid() and role in ('moderator', 'trusted'))
