@@ -165,22 +165,42 @@ export async function listSongs(): Promise<SongSummary[]> {
   return cached('listSongs', async () => {
     const index = await getIndex()
     if (!index) return []
-    const summaries: SongSummary[] = []
-    for (const song of index.songs) {
-      const { meta, annotations } = await readSongFiles(song.artistSlug, song.slug)
-      summaries.push({
-        slug: song.slug,
-        artistSlug: song.artistSlug,
-        title: meta?.title || song.title,
-        artist: meta?.artist || song.artist,
-        album: meta?.album || song.album || '',
-        coverUrl: meta?.coverUrl || song.coverUrl,
-        releaseDate: meta?.releaseDate,
-        annotationCount: annotations.length,
-        language: meta?.language,
-      })
+
+    // 1 seule requête GitHub : index.json contient déjà title, artist, album, coverUrl.
+    const songs = index.songs.map((s) => ({
+      slug: s.slug,
+      artistSlug: s.artistSlug,
+      title: s.title,
+      artist: s.artist,
+      album: s.album || '',
+      coverUrl: s.coverUrl,
+      releaseDate: undefined,
+      annotationCount: 0,
+      language: undefined,
+    }))
+
+    // Enrichir avec les compteurs d'annotations depuis Supabase (1 seule requête).
+    try {
+      const { getSupabaseAdmin } = await import('@/lib/supabase/server')
+      const admin = getSupabaseAdmin()
+      if (admin) {
+        const { data: annData } = await admin
+          .from('annotations')
+          .select('song_id')
+          .eq('status', 'merged')
+        const counts = new Map<string, number>()
+        for (const a of annData ?? []) {
+          counts.set(a.song_id, (counts.get(a.song_id) ?? 0) + 1)
+        }
+        for (const s of songs) {
+          s.annotationCount = counts.get(s.slug) ?? 0
+        }
+      }
+    } catch {
+      // Supabase non disponible → annotationCount = 0, pas grave.
     }
-    return summaries
+
+    return songs
   })
 }
 
@@ -302,20 +322,38 @@ export async function getAlbum(slug: string): Promise<Album | null> {
  * n'a pas d'annotations (état d'invitation).
  */
 export async function listAnnotators(limit = 8): Promise<{ author: string; count: number }[]> {
-  const index = await getIndex()
-  if (!index) return []
-  const counts = new Map<string, number>()
-  for (const song of index.songs) {
-    const { annotations } = await readSongFiles(song.artistSlug, song.slug)
-    for (const ann of annotations) {
-      if (!ann.author) continue
-      counts.set(ann.author, (counts.get(ann.author) ?? 0) + 1)
+  // Utilise Supabase au lieu de fetcher les annotations GitHub pour chaque titre.
+  try {
+    const { getSupabaseAdmin } = await import('@/lib/supabase/server')
+    const admin = getSupabaseAdmin()
+    if (!admin) return []
+
+    const { data: merged } = await admin
+      .from('annotations')
+      .select('author_id')
+      .eq('status', 'merged')
+    if (!merged || merged.length === 0) return []
+
+    const authorIds = [...new Set(merged.map((a) => a.author_id))]
+    const { data: profiles } = await admin
+      .from('profiles')
+      .select('id, username')
+      .in('id', authorIds)
+    const usernameById = new Map((profiles ?? []).map((p) => [p.id, p.username]))
+
+    const counts = new Map<string, number>()
+    for (const a of merged) {
+      const name = usernameById.get(a.author_id)
+      if (name) counts.set(name, (counts.get(name) ?? 0) + 1)
     }
+
+    return [...counts.entries()]
+      .map(([author, count]) => ({ author, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit)
+  } catch {
+    return []
   }
-  return [...counts.entries()]
-    .map(([author, count]) => ({ author, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, limit)
 }
 
 /** Version canon (repo Git) du fichier annotations.json d'un titre. */
