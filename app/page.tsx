@@ -4,6 +4,7 @@ import type { Annotation } from "@/lib/types";
 import { albumSlug, getSong, listAnnotators, listArtists, listSongs } from "@/lib/content/source";
 import { getArtistImage } from "@/lib/imageUtils";
 import CoverImage from "@/components/CoverImage";
+import FeaturedCarousel, { type FeaturedCardData } from "@/components/FeaturedCarousel";
 import SearchTrigger from "@/components/SearchTrigger";
 import Reveal from "@/components/Reveal";
 import DiscoverRow from "@/components/DiscoverRow";
@@ -93,9 +94,26 @@ export default async function Home() {
   //    catalogue faisant foi tant que rien n'est annoté (tri stable). ──
   const chart = [...songs].sort((a, b) => b.annotationCount - a.annotationCount);
 
-  // ── Le titre du jour : le premier du top — carte annotée façon Genius. ──
-  const heroSong = chart[0] ? await getSong(chart[0].slug) : null;
-  const heroNote = heroSong?.annotations[0] ?? null;
+  // ── Les 3 premiers du top — cartes « Titre du jour » swipeables. ──
+  const featuredSongs = await Promise.all(chart.slice(0, 3).map((s) => getSong(s.slug)));
+  const featuredCards: FeaturedCardData[] = featuredSongs
+    .filter((s): s is NonNullable<typeof s> => Boolean(s))
+    .map((s, i) => ({
+      slug: s.slug,
+      title: s.title,
+      artist: s.artist,
+      album: s.album,
+      coverUrl: s.coverUrl,
+      annotationCount: s.annotationCount,
+      rank: i + 1,
+      lines: heroLyricLines(s.lyrics, s.annotations).map((line) => ({
+        key: line.key,
+        spans: line.spans.map((sp) => ({ text: sp.text, body: sp.ann?.body ?? null })),
+      })),
+      note: s.annotations[0]
+        ? { body: s.annotations[0].body, author: s.annotations[0].author, tags: s.annotations[0].tags }
+        : null,
+    }));
 
   // ── Nouveautés : les albums du catalogue (dernières parutions). ──
   const albums = new Map<
@@ -125,7 +143,7 @@ export default async function Home() {
   // ── Suggestions : hors titre du jour ET hors du top — pas de redondance. ──
   const topSlugs = new Set(top.map((s) => s.slug));
   const discoverSongs = songs
-    .filter((s) => s.slug !== heroSong?.slug && !topSlugs.has(s.slug))
+    .filter((s) => s.slug !== chart[0]?.slug && !topSlugs.has(s.slug))
     .slice(0, 12);
 
   const discoverSeed = pickDiscoverSeed();
@@ -193,102 +211,8 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* Titre du jour — carte annotée façon Genius */}
-            {heroSong && (
-              <div className="featured rise relative" style={{ animationDelay: "180ms" }}>
-                <div className="featured-top">
-                  <span className="eyebrow">
-                    <i className="fa-solid fa-star" aria-hidden="true" /> Titre du jour
-                  </span>
-                  <span className="hidden font-mono text-[10px] uppercase tracking-[0.13em] text-ink-faint min-[420px]:block">
-                    Choisi par la rédaction
-                  </span>
-                </div>
-
-                <div className="p-5 sm:p-7">
-                  <div className="flex items-center gap-3">
-                    <CoverImage
-                      src={heroSong.coverUrl}
-                      alt={`Couverture de « ${heroSong.title} »`}
-                      size="card"
-                      eager
-                      className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-[4px] border border-line-strong object-cover"
-                    />
-                    <div className="min-w-0">
-                      <div className="truncate font-grotesk text-lg sm:text-xl font-bold text-ink">
-                        {heroSong.title}
-                      </div>
-                      <div className="mt-0.5 font-mono text-xs text-ink-faint">
-                        {heroSong.artist} · {heroSong.album}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="lyric-block mt-4 sm:mt-5">
-                    {heroLyricLines(heroSong.lyrics, heroSong.annotations).map((line) => (
-                      <div key={line.key}>
-                        {line.spans.map((sp, i) =>
-                          sp.ann ? (
-                            <span key={i} className="annot" title={sp.ann.body}>
-                              {sp.text}
-                              {i === 0 && (
-                                <span className="annot-badge" aria-hidden="true">
-                                  {heroSong.annotationCount}
-                                </span>
-                              )}
-                            </span>
-                          ) : (
-                            <span key={i}>{sp.text}</span>
-                          )
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {heroNote ? (
-                    <div className="note-card mt-4 sm:mt-5">
-                      <div className="note-label">
-                        Note de la communauté · {heroSong.annotationCount} contribution
-                        {heroSong.annotationCount > 1 ? "s" : ""}
-                      </div>
-                      <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-ink-soft">{heroNote.body}</p>
-                      <p className="mt-2 font-mono text-[11px] text-ink-faint">
-                        @{heroNote.author}
-                        {heroNote.tags?.map((t) => ` #${t}`).join("")}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="note-card mt-4 sm:mt-5">
-                      <div className="note-label">À annoter</div>
-                      <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-ink-soft">
-                        Ce titre n&apos;a pas encore d&apos;explication — soyez la première voix.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
-                    <span className="text-center font-mono text-[11px] sm:text-left sm:text-xs text-ink-faint">
-                      {heroSong.annotationCount > 0
-                        ? `${heroSong.annotationCount} passage${heroSong.annotationCount > 1 ? "s" : ""} annoté${heroSong.annotationCount > 1 ? "s" : ""} sur ce titre`
-                        : "À annoter"}
-                    </span>
-                    <Link
-                      href={`/songs/${heroSong.slug}`}
-                      className="btn btn-primary btn-sm btn-sharp relative z-20 w-full justify-center sm:w-auto"
-                    >
-                      <i className="fa-solid fa-book-open" aria-hidden="true" /> Ouvrir et annoter
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Overlay cliquable — toute la carte ouvre le titre sur mobile */}
-                <Link
-                  href={`/songs/${heroSong.slug}`}
-                  aria-label={`Ouvrir « ${heroSong.title} » de ${heroSong.artist}`}
-                  className="absolute inset-0 z-10 transition-colors active:bg-red/5 sm:hidden"
-                />
-              </div>
-            )}
+            {/* Titre du jour — carrousel swipeable des 3 premiers du top */}
+            <FeaturedCarousel cards={featuredCards} />
           </div>
         </section>
       </div>
