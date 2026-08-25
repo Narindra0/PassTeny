@@ -574,6 +574,17 @@ a:hover > .rank-num {
   animation: drawerAuthIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
 }
 
+/* Carrousel « Titre du jour » — remplissage du point actif (durée = AUTOPLAY_MS
+   de FeaturedCarousel.tsx, garder les deux en phase) */
+@keyframes dotProgress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.dot-progress {
+  animation: dotProgress 7s linear forwards;
+}
+
 /* ── Accessibilité : mouvement réduit ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

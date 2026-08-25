@@ -118,10 +118,22 @@ export default function FeaturedCarousel({ cards }: { cards: FeaturedCardData[] 
                   aria-selected={i === index}
                   aria-label={`Voir ${c.title}`}
                   onClick={() => goTo(i)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === index ? 'w-5 bg-red' : 'w-1.5 bg-line-strong hover:bg-red/50'
+                  className={`relative h-1.5 overflow-hidden rounded-full transition-all duration-300 ${
+                    i === index ? 'w-5 bg-red/25' : 'w-1.5 bg-line-strong hover:bg-red/50'
                   }`}
-                />
+                >
+                  {/* Remplissage = temps restant avant la prochaine rotation */}
+                  {i === index &&
+                    (autoPaused ? (
+                      <span className="absolute inset-0 rounded-full bg-red" />
+                    ) : (
+                      <span
+                        key={`progress-${index}`}
+                        className="dot-progress absolute inset-y-0 left-0 rounded-full bg-red"
+                        aria-hidden="true"
+                      />
+                    ))}
+                </button>
               ))}
             </span>
           )}
