@@ -9,6 +9,7 @@ import CoverImage from "@/components/CoverImage";
 import SongContent from "@/components/SongContent";
 import ShareCard from "@/components/ShareCard";
 import AlbumTracklist from "@/components/AlbumTracklist";
+import SwipeNav from "@/components/SwipeNav";
 
 interface SongPageProps {
   params: Promise<{ slug: string }>;
@@ -62,6 +63,10 @@ export default async function SongPage({ params }: SongPageProps) {
   const [releases, artists] = await Promise.all([listArtistAlbums(song.artistSlug), listArtists()]);
   const release = releases.find((r) => r.album === song.album);
   const trackIndex = release ? release.tracks.findIndex((t) => t.slug === song.slug) : -1;
+
+  // Titre précédent / suivant dans l'album (pour SwipeNav mobile)
+  const prevTrack = release && trackIndex > 0 ? release.tracks[trackIndex - 1] : null
+  const nextTrack = release && trackIndex >= 0 && trackIndex < release.tracks.length - 1 ? release.tracks[trackIndex + 1] : null
 
   // Invités (feats) + résolution de leur slug d'artiste quand ils ont une page.
   const feats = parseFeats(song.title, song.meta.artists, song.meta.artist);
@@ -221,7 +226,7 @@ export default async function SongPage({ params }: SongPageProps) {
       </div>
 
       {/* ══ Contenu — lyrics annotables + tracklist ══ */}
-      <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-6 sm:py-10">
+      <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-6 sm:py-10 pb-24 lg:pb-10">
         <p className="mb-6 border-b border-line pb-4 text-sm text-ink-soft">
           <i className="fa-solid fa-highlighter mr-1.5 text-mustard-dark" aria-hidden="true" />
           Sélectionnez un passage pour l’annoter ou le proposer comme punchline. Cliquez sur un passage surligné pour lire son
@@ -245,6 +250,12 @@ export default async function SongPage({ params }: SongPageProps) {
         )}
       </div>
 
+      {/* Swipe navigation mobile — précédent / suivant */}
+      <SwipeNav
+        prev={prevTrack ? { slug: prevTrack.slug, title: prevTrack.title } : null}
+        next={nextTrack ? { slug: nextTrack.slug, title: nextTrack.title } : null}
+        currentTitle={song.title}
+      />
 
     </div>
   );
