@@ -1,0 +1,54 @@
+{
+  "name": "Pass'Teny — Ny hevitry ny teny",
+  "short_name": "Pass'Teny",
+  "description": "La plateforme communautaire d'explication et d'annotation des lyrics de la musique malgache.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f1e4",
+  "theme_color": "#a63a2b",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "fr",
+  "categories": ["music", "education", "entertainment"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Rechercher",
+      "short_name": "Recherche",
+      "url": "/search",
+      "icons": [{ "src": "/icons/icon-96.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Chart",
+      "short_name": "Chart",
+      "url": "/chart",
+      "icons": [{ "src": "/icons/icon-96.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Punchlines",
+      "short_name": "Punchlines",
+      "url": "/glossary",
+      "icons": [{ "src": "/icons/icon-96.svg", "sizes": "96x96" }]
+    }
+  ]
+}

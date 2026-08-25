@@ -15,12 +15,12 @@ export const metadata: Metadata = {
 /** Ligne horizontale de titres avec scroll. */
 function SongRow({ songs }: { songs: { slug: string; title: string; artist: string; coverUrl?: string | null; annotationCount: number }[] }) {
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+    <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
       {songs.map((s) => (
         <Link
           key={s.slug}
           href={`/songs/${s.slug}`}
-          className="group shrink-0 w-[180px] sm:w-[200px]"
+          className="group shrink-0 w-[140px] sm:w-[180px] md:w-[200px]"
         >
           <div className="relative overflow-hidden rounded-xl border border-line-strong bg-card transition-all hover:-translate-y-0.5 hover:shadow-card">
             <CoverImage
@@ -273,10 +273,10 @@ export default async function DiscoverPage() {
         )}
 
         {/* ── Liens rapides vers Magazine & Wallpapers ── */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Link
             href="/magazine"
-            className="group card card-hover flex items-center gap-3 p-5"
+            className="group card card-hover flex items-center gap-3 p-4 sm:p-5"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red/10 text-red">
               <i className="fa-solid fa-newspaper text-sm" aria-hidden="true" />
@@ -293,7 +293,7 @@ export default async function DiscoverPage() {
           </Link>
           <Link
             href="/wallpapers"
-            className="group card card-hover flex items-center gap-3 p-5"
+            className="group card card-hover flex items-center gap-3 p-4 sm:p-5"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mustard/10 text-mustard-dark">
               <i className="fa-solid fa-image text-sm" aria-hidden="true" />

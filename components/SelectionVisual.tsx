@@ -35,7 +35,7 @@ export default function SelectionVisual({ title, artist, quote, cover, onClose }
   }
 
   return (
-    <div className="card fixed inset-x-0 bottom-0 z-40 m-4 overflow-hidden rounded-2xl shadow-card sm:inset-x-auto sm:right-6 sm:bottom-6 sm:m-0 sm:w-[30rem] sm:rounded-lg">
+    <div className="card fixed inset-x-0 bottom-0 z-40 overflow-hidden rounded-t-2xl shadow-card sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[30rem] sm:rounded-lg" style={{ marginBottom: 'max(1rem, env(safe-area-inset-bottom))', marginInline: '1rem' }}>
       {/* Header + citation */}
       <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
         <div className="min-w-0">

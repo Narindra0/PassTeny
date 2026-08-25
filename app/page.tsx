@@ -138,7 +138,7 @@ export default async function Home() {
   return (
     <div className="flex-1">
       {/* ══ Hero — l'édition & le titre du jour annoté ══ */}
-      <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6">
+      <div className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6 sm:py-12">
         <section>
           <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
             {/* Colonne éditoriale */}
@@ -172,7 +172,7 @@ export default async function Home() {
                   <i className="fa-solid fa-magnifying-glass text-sm" aria-hidden="true" />
                   <span className="truncate">Rechercher un titre, un artiste, une parole…</span>
                 </SearchTrigger>
-                <SearchTrigger label="Rechercher" className="btn btn-primary btn-sharp shrink-0">
+                <SearchTrigger label="Rechercher" className="btn btn-primary btn-sharp hidden shrink-0 sm:inline-flex">
                   <i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Rechercher
                 </SearchTrigger>
               </div>
@@ -297,8 +297,9 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-px overflow-hidden rounded-md border border-paper/15 bg-paper/15 sm:grid-cols-3">
-            <div className="bg-ink p-7">
+          <div className="mt-10 grid overflow-hidden rounded-md border border-paper/15 bg-paper/15 sm:grid-cols-3">
+            {/* gap-px effect via border on inner divs */}
+            <div className="border-b border-paper/15 bg-ink p-6 sm:border-b-0 sm:p-7">
               <p className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-paper/50">
                 01 — écouter
               </p>
@@ -316,7 +317,7 @@ export default async function Home() {
                 player.passiio.shop ↗
               </a>
             </div>
-            <div className="bg-red-dark p-7">
+            <div className="border-b border-paper/15 bg-red-dark p-6 sm:border-b-0 sm:p-7">
               <p className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-white/75">
                 02 — comprendre
               </p>
@@ -328,7 +329,7 @@ export default async function Home() {
                 Vous êtes ici
               </span>
             </div>
-            <div className="bg-ink p-7">
+            <div className="bg-ink p-6 sm:p-7">
               <p className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-paper/50">
                 03 — publier
               </p>
@@ -499,8 +500,8 @@ export default async function Home() {
         {/* ── Le chantier des mots — progression + top annotateurs ── */}
         <Reveal>
           <section className="mt-20">
-            <div className="rounded-[6px] border-[1.5px] border-ink bg-card p-7 shadow-card sm:p-9">
-              <div className="flex flex-wrap items-start justify-between gap-5">
+            <div className="rounded-[6px] border-[1.5px] border-ink bg-card p-5 shadow-card sm:p-7 sm:p-9">
+              <div className="flex flex-wrap items-start justify-between gap-4 sm:gap-5">
                 <div className="max-w-md">
                   <h3 className="font-grotesk text-[1.35rem] font-bold uppercase tracking-tight text-ink">
                     Le chantier des mots
@@ -581,7 +582,7 @@ export default async function Home() {
               <CountBadge>{artists.length}</CountBadge>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-7">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 sm:grid-cols-4 md:grid-cols-7">
               {artists.map((artist) => (
                 <Link key={artist.slug} href={`/artists/${artist.slug}`} className="group text-center">
                   <div className="mx-auto mb-2.5 w-full max-w-[88px]">

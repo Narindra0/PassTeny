@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <!-- Background -->
+  <rect width="180" height="180" rx="29" fill="#f7f1e4"/>
+
+  <!-- Lamba diamond — 4-color conic gradient (simulated with 4 paths) -->
+  <g transform="translate(90, 90) rotate(45)">
+    <!-- Top-left: red -->
+    <path d="M0,-34 L-34,0 L0,34 Z" fill="#a63a2b"/>
+    <!-- Top-right: paper -->
+    <path d="M0,-34 L34,0 L0,34 Z" fill="#f7f1e4"/>
+    <!-- Bottom-left: green -->
+    <path d="M0,0 L-34,0 L0,34 Z" fill="#43633f"/>
+    <!-- Bottom-right: mustard -->
+    <path d="M0,0 L34,0 L0,34 Z" fill="#c4912e"/>
+
+    <!-- Border -->
+    <rect x="-34" y="-34"
+          width="68" height="68"
+          rx="3" fill="none" stroke="#211b12" stroke-width="2.6999999999999997"/>
+  </g>
+
+  <!-- Text label below the diamond -->
+  <text x="90" y="168.8"
+        font-family="system-ui, -apple-system, sans-serif"
+        font-weight="700"
+        font-size="22"
+        text-anchor="middle"
+        fill="#211b12"
+        letter-spacing="-0.02em">PASS'TENY</text>
+</svg>

@@ -194,7 +194,7 @@ export default async function ChartPage() {
       </p>
 
       {/* ── Stats globales ── */}
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-4">
         <Stat label="titres au catalogue" value={songs.length} />
         <Stat label="vues cumulées" value={totalViews.toLocaleString('fr-FR')} />
         <Stat label="annotations publiées" value={mergedCount} />

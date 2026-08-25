@@ -74,10 +74,10 @@ export default async function SongPage({ params }: SongPageProps) {
     <div className="flex-1">
       {/* ══ Hero — grande cover + titre, façon Genius ══ */}
       <div className="song-hero">
-        <div className="mx-auto w-full max-w-5xl px-4 pb-12 pt-5 sm:px-6 sm:pb-14">
+        <div className="mx-auto w-full max-w-5xl px-5 pb-10 pt-5 sm:px-6 sm:pb-14">
           {/* Fil d'ariane + partage */}
           <div className="flex items-center justify-between gap-4">
-            <nav className="min-w-0 truncate font-mono text-[0.65rem] uppercase tracking-wider text-paper/50">
+            <nav className="min-w-0 overflow-x-auto whitespace-nowrap font-mono text-[0.65rem] uppercase tracking-wider text-paper/50 scrollbar-thin">
               <Link href="/" className="transition-colors hover:text-white">
                 Accueil
               </Link>
@@ -110,13 +110,13 @@ export default async function SongPage({ params }: SongPageProps) {
           </div>
 
           {/* Cover + identité du titre */}
-          <div className="mt-8 flex flex-col gap-7 sm:flex-row sm:items-end sm:gap-9">
+          <div className="mt-6 flex flex-col items-center gap-7 sm:items-end sm:flex-row sm:gap-9">
             <CoverImage
               src={song.coverUrl}
               alt={`Couverture de « ${song.title} »`}
               size="detail"
               eager
-              className="h-44 w-44 shrink-0 rounded-[4px] border border-paper/25 object-cover shadow-[0_20px_48px_rgba(0,0,0,0.45)] sm:h-60 sm:w-60"
+              className="h-36 w-36 shrink-0 rounded-[4px] border border-paper/25 object-cover shadow-[0_20px_48px_rgba(0,0,0,0.45)] sm:h-60 sm:w-60"
             />
 
             <div className="min-w-0">
@@ -181,8 +181,8 @@ export default async function SongPage({ params }: SongPageProps) {
                 </p>
               )}
 
-              {/* État d'annotation + soumissions en attente + langues */}
-              <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[11.5px] text-paper/55">
+          {/* État d'annotation + soumissions en attente + langues */}
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11.5px] text-paper/55">
                 <span>
                   {song.annotationCount > 0 ? (
                     <>
@@ -221,7 +221,7 @@ export default async function SongPage({ params }: SongPageProps) {
       </div>
 
       {/* ══ Contenu — lyrics annotables + tracklist ══ */}
-      <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
+      <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-6 sm:py-10">
         <p className="mb-6 border-b border-line pb-4 text-sm text-ink-soft">
           <i className="fa-solid fa-highlighter mr-1.5 text-mustard-dark" aria-hidden="true" />
           Sélectionnez un passage pour l’annoter ou le proposer comme punchline. Cliquez sur un passage surligné pour lire son

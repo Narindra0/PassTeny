@@ -277,6 +277,7 @@ export default function Navbar({ authBar }: { authBar: ReactNode }) {
         className={`fixed top-0 right-0 z-50 flex h-full w-[min(85vw,320px)] flex-col bg-paper shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden ${
           mobileOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         {/* Header drawer */}
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
@@ -314,7 +315,7 @@ export default function Navbar({ authBar }: { authBar: ReactNode }) {
                   key={link.href}
                   href={link.href}
                   onClick={closeMobile}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                  className={`flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all ${
                     active
                       ? 'bg-ink text-paper'
                       : 'text-ink hover:bg-paper-deep hover:text-ink'
@@ -346,7 +347,7 @@ export default function Navbar({ authBar }: { authBar: ReactNode }) {
                     key={tab.anchor}
                     href={tab.anchor}
                     onClick={closeMobile}
-                    className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                    className={`flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all ${
                       isActiveTab
                         ? 'bg-ink text-paper'
                         : 'text-ink hover:bg-paper-deep hover:text-ink'

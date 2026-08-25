@@ -113,7 +113,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             {totalMatches} résultat{totalMatches > 1 ? "s" : ""} pour « {query} »
           </p>
 
-          <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-10">
             {/* ══ Colonne gauche : titres + albums ══ */}
             <div className="min-w-0 space-y-10">
               {/* Titres */}

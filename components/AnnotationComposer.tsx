@@ -112,7 +112,7 @@ export default function AnnotationComposer({ songSlug, selection, onClose, onSub
   }
 
   return (
-    <div className="card fixed inset-x-0 bottom-0 z-40 m-4 overflow-hidden rounded-2xl shadow-card sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[26rem] sm:m-0 sm:rounded-lg">
+    <div className="card fixed inset-x-0 bottom-0 z-40 overflow-hidden rounded-t-2xl shadow-card sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[26rem] sm:rounded-lg" style={{ marginBottom: 'max(1rem, env(safe-area-inset-bottom))', marginInline: '1rem' }}>
       {/* Header + citation */}
       <div className="flex items-start justify-between gap-3 border-b border-line px-4 pt-4 pb-3">
         <div className="min-w-0">

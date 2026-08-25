@@ -135,7 +135,7 @@ export default async function WallpapersPage() {
       {/* ══ Grille wallpapers ══ */}
       <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
         {wallpapers.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {wallpapers.map((wp) => (
               <WallpaperCard key={wp.id} wallpaper={wp} />
             ))}

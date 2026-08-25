@@ -54,13 +54,13 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
 
       {/* ══ Header album ══ */}
       <header className="rise mb-14" style={{ animationDelay: "0ms" }}>
-        <div className="flex flex-wrap items-start gap-6">
+        <div className="flex flex-wrap items-start gap-5 sm:gap-6">
           <CoverImage
             src={album.coverUrl}
             alt={`Couverture de « ${album.album} »`}
             size="detail"
             eager
-            className="h-40 w-40 shrink-0 rounded-xl border border-line-strong object-cover shadow-card sm:h-48 sm:w-48"
+            className="h-36 w-36 shrink-0 rounded-xl border border-line-strong object-cover shadow-card sm:h-48 sm:w-48"
           />
 
           <div className="min-w-0 flex-1">
@@ -68,7 +68,7 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
               <i className="fa-solid fa-compact-disc" aria-hidden="true" /> Release ·{" "}
               {album.type === "Album" ? "Album" : album.type === "EP" ? "EP" : "Single"}
             </span>
-            <h1 className="mt-2 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-5xl">
+            <h1 className="mt-2 font-display text-3xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-5xl">
               {album.album}
             </h1>
             <Link
@@ -79,7 +79,7 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
               {album.artist}
             </Link>
 
-            <dl className="mt-5 flex flex-wrap gap-x-10 gap-y-2">
+            <dl className="mt-5 flex flex-wrap gap-x-6 gap-y-2 sm:gap-x-10">
               <div>
                 <dt className="font-mono text-[0.6rem] font-semibold uppercase tracking-[2px] text-ink-faint">
                   Titres

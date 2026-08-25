@@ -183,6 +183,26 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-soft); }
 
+/* ── Scrollbar réduite pour les zones de scroll horizontal (mobile) ── */
+.scrollbar-thin::-webkit-scrollbar { height: 4px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+
+/* ── Touch scrolling amélioré (iOS momentum scroll) ── */
+.overflow-x-auto { -webkit-overflow-scrolling: touch; }
+
+/* ── Sélection de texte optimisée mobile ── */
+@media (pointer: coarse) {
+  .lyric-line { line-height: 2.2; }
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 40px; }
+  a, button { min-height: 44px; }
+}
+
+/* ── Safe area padding bottom (home indicator iOS) ── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body { padding-bottom: env(safe-area-inset-bottom); }
+}
+
 /* ════════════════════════════════════════════════════════════════════════
    SIGNATURE — la bande tissée du lamba akotofahana
    Frise de fils latérite / ivoire / vert / or / encre, en filigrane du site.
@@ -273,7 +293,7 @@ a:hover > .rank-num {
 /* ── Titre de section : serif italique façon recueil ── */
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(1.9rem, 3vw, 2.6rem);
+  font-size: clamp(1.5rem, 3vw, 2.6rem);
   font-weight: 500;
   font-style: italic;
   color: var(--ink);
@@ -586,7 +606,7 @@ a:hover > .rank-num {
   text-transform: uppercase;
   letter-spacing: -0.02em;
   line-height: 0.98;
-  font-size: clamp(2.5rem, 6.5vw, 3.7rem);
+  font-size: clamp(1.8rem, 6.5vw, 3.7rem);
 }
 
 /* Accent serif italique (le mot « teny ») — jamais en capitales */

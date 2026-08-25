@@ -5,6 +5,7 @@ import AuthBar from "@/components/AuthBar";
 import SearchModal from "@/components/SearchModal";
 import SignInModal from "@/components/SignInModal";
 import SearchTrigger from "@/components/SearchTrigger";
+import RegisterSW from "@/components/RegisterSW";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,6 +23,16 @@ export const metadata: Metadata = {
     title: "Pass'Teny — Ny hevitry ny teny",
     description: "Comprendre chaque parole de la musique malgache.",
   },
+  manifest: "/manifest.json",
+  themeColor: "#a63a2b",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Pass'Teny",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -31,6 +42,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className="h-full antialiased"
     >
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#a63a2b" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Pass'Teny" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.svg" />
+        <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
+        <link rel="manifest" href="/manifest.json" />
         <link
           rel="preconnect"
           href="https://fonts.googleapis.com"
@@ -45,7 +64,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           rel="stylesheet"
         />
       </head>
-      <body className="flex min-h-full flex-col bg-paper">
+      <body className="flex min-h-full flex-col bg-paper" style={{ overflowX: 'hidden' }}>
         {/* ── Header adaptatif : nav contextuelle par page ── */}
         <Navbar authBar={<AuthBar />} />
 
@@ -53,7 +72,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
         {/* ── Footer : bandeau encre, colonnes mono, miroir du mockup ── */}
         <footer className="mt-20 bg-ink text-paper">
-          <div className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6">
+          <div className="mx-auto w-full max-w-5xl px-5 py-12 sm:px-6 sm:py-14">
             <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
               <div>
                 <p className="flex items-center gap-2.5 font-grotesk text-[1.3rem] font-bold tracking-tight text-paper">
@@ -100,7 +119,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 </a>
               </div>
             </div>
-            <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-paper/15 pt-5 font-mono text-[11px] uppercase tracking-[0.1em] text-paper/40 sm:flex-row">
+            <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-paper/15 pt-5 font-mono text-[11px] uppercase tracking-[0.1em] text-paper/40 sm:flex-row sm:gap-2">
               <p>© {new Date().getFullYear()} Pass&apos;Teny · Ny hevitry ny teny</p>
               <p>Indépendant de Pass&apos;io · Contenu versionné sur GitHub</p>
             </div>
@@ -111,6 +130,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SearchModal />
         {/* Connexion en modal */}
         <SignInModal />
+        {/* Enregistrement du service worker PWA */}
+        <RegisterSW />
       </body>
     </html>
   );

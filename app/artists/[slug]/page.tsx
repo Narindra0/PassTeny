@@ -49,7 +49,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
 
       {/* ══ Header artiste premium ══ */}
       <header className="rise mb-14" style={{ animationDelay: "0ms" }}>
-        <div className="flex flex-wrap items-center gap-6">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           <CoverImage
             src={artistImage.src}
             alt={`${artist.name} — photo`}
@@ -57,18 +57,18 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
             fallback={artistImage.fallback}
             eager
             skipImageKitFallback
-            className="h-24 w-24 shrink-0 rounded-full border border-line-strong object-cover shadow-card sm:h-28 sm:w-28"
+            className="h-20 w-20 shrink-0 rounded-full border border-line-strong object-cover shadow-card sm:h-28 sm:w-28"
           />
           <div className="min-w-0 flex-1">
             <span className="eyebrow">
               <i className="fa-solid fa-microphone" aria-hidden="true" /> Artiste
             </span>
-            <h1 className="mt-1.5 font-display text-4xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
+            <h1 className="mt-1.5 font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
               {artist.name}
             </h1>
 
             {/* Stats mono */}
-            <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-2">
+            <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 sm:gap-x-8">
               <div>
                 <dt className="font-mono text-[0.6rem] font-semibold uppercase tracking-[2px] text-ink-faint">
                   Titres
