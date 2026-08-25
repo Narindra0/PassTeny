@@ -195,7 +195,7 @@ export default async function Home() {
 
             {/* Titre du jour — carte annotée façon Genius */}
             {heroSong && (
-              <div className="featured rise" style={{ animationDelay: "180ms" }}>
+              <div className="featured rise relative" style={{ animationDelay: "180ms" }}>
                 <div className="featured-top">
                   <span className="eyebrow">
                     <i className="fa-solid fa-star" aria-hidden="true" /> Titre du jour
@@ -274,12 +274,19 @@ export default async function Home() {
                     </span>
                     <Link
                       href={`/songs/${heroSong.slug}`}
-                      className="btn btn-primary btn-sm btn-sharp w-full justify-center sm:w-auto"
+                      className="btn btn-primary btn-sm btn-sharp relative z-20 w-full justify-center sm:w-auto"
                     >
                       <i className="fa-solid fa-book-open" aria-hidden="true" /> Ouvrir et annoter
                     </Link>
                   </div>
                 </div>
+
+                {/* Overlay cliquable — toute la carte ouvre le titre sur mobile */}
+                <Link
+                  href={`/songs/${heroSong.slug}`}
+                  aria-label={`Ouvrir « ${heroSong.title} » de ${heroSong.artist}`}
+                  className="absolute inset-0 z-10 transition-colors active:bg-red/5 sm:hidden"
+                />
               </div>
             )}
           </div>
