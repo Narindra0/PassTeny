@@ -200,7 +200,7 @@ export default async function Home() {
                   <span className="eyebrow">
                     <i className="fa-solid fa-star" aria-hidden="true" /> Titre du jour
                   </span>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.13em] text-ink-faint">
+                  <span className="hidden font-mono text-[10px] uppercase tracking-[0.13em] text-ink-faint min-[420px]:block">
                     Choisi par la rédaction
                   </span>
                 </div>
@@ -251,7 +251,7 @@ export default async function Home() {
                         Note de la communauté · {heroSong.annotationCount} contribution
                         {heroSong.annotationCount > 1 ? "s" : ""}
                       </div>
-                      <p className="text-[13.5px] leading-relaxed text-ink-soft">{heroNote.body}</p>
+                      <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-ink-soft">{heroNote.body}</p>
                       <p className="mt-2 font-mono text-[11px] text-ink-faint">
                         @{heroNote.author}
                         {heroNote.tags?.map((t) => ` #${t}`).join("")}
@@ -260,19 +260,22 @@ export default async function Home() {
                   ) : (
                     <div className="note-card mt-4 sm:mt-5">
                       <div className="note-label">À annoter</div>
-                      <p className="text-[13.5px] leading-relaxed text-ink-soft">
+                      <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-ink-soft">
                         Ce titre n&apos;a pas encore d&apos;explication — soyez la première voix.
                       </p>
                     </div>
                   )}
 
-                  <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-2.5 sm:gap-3">
-                    <span className="font-mono text-[11px] sm:text-xs text-ink-faint">
+                  <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
+                    <span className="text-center font-mono text-[11px] sm:text-left sm:text-xs text-ink-faint">
                       {heroSong.annotationCount > 0
                         ? `${heroSong.annotationCount} passage${heroSong.annotationCount > 1 ? "s" : ""} annoté${heroSong.annotationCount > 1 ? "s" : ""} sur ce titre`
                         : "À annoter"}
                     </span>
-                    <Link href={`/songs/${heroSong.slug}`} className="btn btn-primary btn-sm btn-sharp">
+                    <Link
+                      href={`/songs/${heroSong.slug}`}
+                      className="btn btn-primary btn-sm btn-sharp w-full justify-center sm:w-auto"
+                    >
                       <i className="fa-solid fa-book-open" aria-hidden="true" /> Ouvrir et annoter
                     </Link>
                   </div>
