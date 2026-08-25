@@ -564,6 +564,16 @@ a:hover > .rank-num {
   animation: growBar 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Drawer mobile — entrée slide-up de la section auth avec délai */
+@keyframes drawerAuthIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.drawer-auth-enter {
+  animation: drawerAuthIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
+}
+
 /* ── Accessibilité : mouvement réduit ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

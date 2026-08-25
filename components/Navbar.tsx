@@ -363,8 +363,8 @@ export default function Navbar({ authBar }: { authBar: ReactNode }) {
           )}
         </nav>
 
-        {/* Auth section in drawer */}
-        <div className="border-t border-line px-4 py-4">
+        {/* Auth section in drawer — slide-in avec délai */}
+        <div className={`border-t border-line px-4 py-4 ${mobileOpen ? 'drawer-auth-enter' : 'opacity-0'}`}>
           <div className="flex items-center gap-3">
             {authBar}
           </div>
