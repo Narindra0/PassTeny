@@ -138,9 +138,9 @@ export default async function Home() {
   return (
     <div className="flex-1">
       {/* ══ Hero — l'édition & le titre du jour annoté ══ */}
-      <div className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6 sm:py-12">
+      <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-6 sm:py-12">
         <section>
-          <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+          <div className="grid items-start gap-8 sm:gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
             {/* Colonne éditoriale */}
             <div>
               <span className="eyebrow rise" style={{ animationDelay: "0ms" }}>
@@ -149,14 +149,14 @@ export default async function Home() {
               </span>
 
               <h1
-                className="hero-title rise mt-5 text-ink"
+                className="hero-title rise mt-4 sm:mt-5 text-ink"
                 style={{ animationDelay: "70ms" }}
               >
                 Ny hevitry ny <em className="serif-accent text-red">teny</em>
               </h1>
 
               <p
-                className="rise mt-5 max-w-md text-[1.02rem] leading-relaxed text-ink-soft"
+                className="rise mt-4 sm:mt-5 max-w-md text-[0.95rem] sm:text-[1.02rem] leading-relaxed text-ink-soft"
                 style={{ animationDelay: "140ms" }}
               >
                 Le sens caché de chaque parole malgache —{" "}
@@ -164,7 +164,7 @@ export default async function Home() {
                 références — surligné, expliqué, débattu par ceux qui l&apos;ont vécu.
               </p>
 
-              <div className="rise mt-7 flex max-w-md gap-2.5" style={{ animationDelay: "210ms" }}>
+              <div className="rise mt-6 sm:mt-7 flex max-w-md gap-2.5" style={{ animationDelay: "210ms" }}>
                 <SearchTrigger
                   label="Rechercher un titre, un artiste, une parole"
                   className="flex flex-1 items-center gap-3 rounded-[3px] border-[1.5px] border-line-strong bg-card px-4 py-3.5 text-left text-sm text-ink-faint transition-colors hover:border-ink"
@@ -177,7 +177,7 @@ export default async function Home() {
                 </SearchTrigger>
               </div>
 
-              <div className="rise mt-5 flex flex-wrap gap-2.5" style={{ animationDelay: "280ms" }}>
+              <div className="rise mt-4 sm:mt-5 flex flex-wrap gap-2 sm:gap-2.5" style={{ animationDelay: "280ms" }}>
                 <Link
                   href="/glossary"
                   className="rounded-full border-[1.5px] border-line-strong px-4 py-2 text-[0.82rem] font-medium text-ink-soft transition-colors hover:border-red hover:text-red"
@@ -205,17 +205,17 @@ export default async function Home() {
                   </span>
                 </div>
 
-                <div className="p-6 sm:p-7">
-                  <div className="flex items-center gap-3.5">
+                <div className="p-5 sm:p-7">
+                  <div className="flex items-center gap-3">
                     <CoverImage
                       src={heroSong.coverUrl}
                       alt={`Couverture de « ${heroSong.title} »`}
                       size="card"
                       eager
-                      className="h-14 w-14 shrink-0 rounded-[4px] border border-line-strong object-cover"
+                      className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-[4px] border border-line-strong object-cover"
                     />
                     <div className="min-w-0">
-                      <div className="truncate font-grotesk text-xl font-bold text-ink">
+                      <div className="truncate font-grotesk text-lg sm:text-xl font-bold text-ink">
                         {heroSong.title}
                       </div>
                       <div className="mt-0.5 font-mono text-xs text-ink-faint">
@@ -224,7 +224,7 @@ export default async function Home() {
                     </div>
                   </div>
 
-                  <div className="lyric-block mt-5">
+                  <div className="lyric-block mt-4 sm:mt-5">
                     {heroLyricLines(heroSong.lyrics, heroSong.annotations).map((line) => (
                       <div key={line.key}>
                         {line.spans.map((sp, i) =>
@@ -246,7 +246,7 @@ export default async function Home() {
                   </div>
 
                   {heroNote ? (
-                    <div className="note-card mt-5">
+                    <div className="note-card mt-4 sm:mt-5">
                       <div className="note-label">
                         Note de la communauté · {heroSong.annotationCount} contribution
                         {heroSong.annotationCount > 1 ? "s" : ""}
@@ -258,7 +258,7 @@ export default async function Home() {
                       </p>
                     </div>
                   ) : (
-                    <div className="note-card mt-5">
+                    <div className="note-card mt-4 sm:mt-5">
                       <div className="note-label">À annoter</div>
                       <p className="text-[13.5px] leading-relaxed text-ink-soft">
                         Ce titre n&apos;a pas encore d&apos;explication — soyez la première voix.
@@ -266,8 +266,8 @@ export default async function Home() {
                     </div>
                   )}
 
-                  <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                    <span className="font-mono text-xs text-ink-faint">
+                  <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-2.5 sm:gap-3">
+                    <span className="font-mono text-[11px] sm:text-xs text-ink-faint">
                       {heroSong.annotationCount > 0
                         ? `${heroSong.annotationCount} passage${heroSong.annotationCount > 1 ? "s" : ""} annoté${heroSong.annotationCount > 1 ? "s" : ""} sur ce titre`
                         : "À annoter"}
@@ -284,8 +284,8 @@ export default async function Home() {
       </div>
 
       {/* ══ L'écosystème — bande encre pleine largeur ══ */}
-      <section id="eco" className="mt-20 scroll-mt-24 bg-ink text-paper">
-        <div className="mx-auto w-full max-w-5xl px-4 py-16 sm:px-6 sm:py-20">
+      <section id="eco" className="mt-16 sm:mt-20 scroll-mt-24 bg-ink text-paper">
+        <div className="mx-auto w-full max-w-5xl px-5 py-12 sm:px-6 sm:py-20">
           <div className="max-w-xl">
             <span className="eyebrow">Un seul catalogue, trois usages</span>
             <h2 className="mt-3 font-grotesk text-2xl font-bold uppercase tracking-tight text-paper sm:text-3xl">
@@ -297,7 +297,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid overflow-hidden rounded-md border border-paper/15 bg-paper/15 sm:grid-cols-3">
+          <div className="mt-8 sm:mt-10 grid overflow-hidden rounded-md border border-paper/15 bg-paper/15 sm:grid-cols-3">
             {/* gap-px effect via border on inner divs */}
             <div className="border-b border-paper/15 bg-ink p-6 sm:border-b-0 sm:p-7">
               <p className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-paper/50">

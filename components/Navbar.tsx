@@ -223,7 +223,8 @@ export default function Navbar({ authBar }: { authBar: ReactNode }) {
               <i className="fa-solid fa-magnifying-glass text-[0.8rem]" aria-hidden="true" />
             </SearchTrigger>
 
-            {authBar}
+            {/* Auth — desktop only, mobile via burger drawer */}
+            <div className="hidden lg:flex">{authBar}</div>
 
             {/* Hamburger mobile */}
             <button
@@ -361,6 +362,13 @@ export default function Navbar({ authBar }: { authBar: ReactNode }) {
             </div>
           )}
         </nav>
+
+        {/* Auth section in drawer */}
+        <div className="border-t border-line px-4 py-4">
+          <div className="flex items-center gap-3">
+            {authBar}
+          </div>
+        </div>
 
         {/* Footer drawer */}
         <div className="border-t border-line px-5 py-4">
